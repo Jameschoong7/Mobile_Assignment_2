@@ -7,20 +7,26 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import org.json.JSONArray
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class LoginActivity : AppCompatActivity() {
+
+    private lateinit var repository: CoffeeShopRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_login)
+
+        // Initialize the repository with the Room database instance
+        val db = CoffeeShopDatabase.getDatabase(applicationContext)
+        repository = CoffeeShopRepository(db.coffeeShopDao())
 
         val emailInput = findViewById<EditText>(R.id.email)
         val passwordInput = findViewById<EditText>(R.id.password)
         val loginButton = findViewById<Button>(R.id.login_button)
         val registerButton = findViewById<Button>(R.id.register_button)
         val forgotPasswordText = findViewById<TextView>(R.id.forgot_password)
-
-        val sharedPrefs = getSharedPreferences("UserPrefs", MODE_PRIVATE)
 
         loginButton.setOnClickListener {
             val email = emailInput.text.toString().trim()
@@ -31,39 +37,22 @@ class LoginActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Retrieve the list of users from SharedPreferences
-            val usersJsonString = sharedPrefs.getString("users", null)
-            if (usersJsonString == null) {
-                Toast.makeText(this, "No users registered", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Parse the users array
-            val usersArray = JSONArray(usersJsonString)
-            var userFound = false
-
-            // Check if the email and password match any user
-            for (i in 0 until usersArray.length()) {
-                val user = usersArray.getJSONObject(i)
-                val storedEmail = user.getString("email")
-                val storedPassword = user.getString("password")
-
-                if (storedEmail == email && storedPassword == password) {
-                    userFound = true
-                    // Save the logged-in user's email to SharedPreferences
-                    val editor = sharedPrefs.edit()
-                    editor.putString("loggedInUserEmail", email)
-                    editor.apply()
-
-                    Toast.makeText(this, "Login successful", Toast.LENGTH_SHORT).show()
-                    startActivity(Intent(this, MainActivity::class.java))
-                    finish()
-                    break
+            GlobalScope.launch {
+                // Retrieve user by email
+                val user = repository.getUserByEmail(email)
+                if (user != null && user.password == password) {
+                    runOnUiThread {
+                        // Successful login
+                        Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                        startActivity(intent)
+                        finish()
+                    }
+                } else {
+                    runOnUiThread {
+                        Toast.makeText(this@LoginActivity, "Invalid credentials", Toast.LENGTH_SHORT).show()
+                    }
                 }
-            }
-
-            if (!userFound) {
-                Toast.makeText(this, "Invalid credentials", Toast.LENGTH_SHORT).show()
             }
         }
 

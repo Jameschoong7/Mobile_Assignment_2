@@ -11,6 +11,11 @@ class CoffeeShopRepository (private val coffeeShopDao: CoffeeShopDao){
         return coffeeShopDao.getUser(userId)
     }
 
+    // Get user by email
+    suspend fun getUserByEmail(userEmail: String): User? {
+        return coffeeShopDao.getUserByEmail(userEmail)
+    }
+
     // Insert product
     suspend fun insertProduct(product: Product) {
         coffeeShopDao.insertProduct(product)

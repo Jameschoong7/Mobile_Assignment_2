@@ -7,13 +7,21 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import org.json.JSONArray
-import org.json.JSONObject
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
+import androidx.room.*
 
 class RegisterActivity : AppCompatActivity() {
+
+    private lateinit var repository: CoffeeShopRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
+
+        // Initialize the repository with the Room database instance
+        val db = CoffeeShopDatabase.getDatabase(applicationContext)
+        repository = CoffeeShopRepository(db.coffeeShopDao())
 
         val usernameEditText = findViewById<EditText>(R.id.register_username)
         val emailEditText = findViewById<EditText>(R.id.register_email)
@@ -35,46 +43,26 @@ class RegisterActivity : AppCompatActivity() {
                 return@setOnClickListener
             }
 
-            // Access SharedPreferences
-            val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-            val editor = sharedPreferences.edit()
+            GlobalScope.launch {
+                // Check if email already exists
+                val existingUser = repository.getUserByEmail(email)
+                if (existingUser != null) {
+                    runOnUiThread {
+                        Toast.makeText(this@RegisterActivity, "Email already registered", Toast.LENGTH_SHORT).show()
+                    }
+                    return@launch
+                }
 
-            // Retrieve the existing users (if any) or create a new JSONArray
-            val usersJsonString = sharedPreferences.getString("users", null)
-            val usersArray = if (usersJsonString != null) {
-                JSONArray(usersJsonString)
-            } else {
-                JSONArray()
-            }
+                // Create new user object and insert into Room database
+                val newUser = User(username = username, email = email, password = password, phone = phone, address = address)
+                repository.insertUser(newUser)
 
-            // Check if the email is already registered
-            for (i in 0 until usersArray.length()) {
-                val user = usersArray.getJSONObject(i)
-                if (user.getString("email") == email) {
-                    Toast.makeText(this, "Email already registered", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
+                runOnUiThread {
+                    Toast.makeText(this@RegisterActivity, "Registration successful!", Toast.LENGTH_SHORT).show()
+                    startActivity(Intent(this@RegisterActivity, LoginActivity::class.java))
+                    finish()
                 }
             }
-
-            // Create a new user JSON object
-            val userJson = JSONObject().apply {
-                put("username", username)
-                put("email", email)
-                put("password", password)
-                put("phone", phone)
-                put("address", address)
-            }
-
-            // Add the new user to the array
-            usersArray.put(userJson)
-
-            // Save the updated users array back to SharedPreferences
-            editor.putString("users", usersArray.toString())
-            editor.apply()
-
-            Toast.makeText(this, "Registration successful!", Toast.LENGTH_SHORT).show()
-            startActivity(Intent(this, LoginActivity::class.java))
-            finish()
         }
 
         backButton.setOnClickListener {

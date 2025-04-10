@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Espresso",
+    "price": 4.00,
+    "description": "Kaw kaw (thick thick) black coffee, one shot is enough to stay focused for whole day",
+    "category": "Coffee",
+    "dietary": ["Vegetarian", "Gluten-Free"],
+    "image": "espresso"
+  },
+  {
+    "name": "Americano",
+    "price": 7.00,
+    "description": "A diluted espresso with hot water, offering a lighter coffee taste.",
+    "category": "Coffee",
+    "dietary": ["Vegetarian", "Gluten-Free"],
+    "image": "americano"
+  },
+  {
+    "name": "Latte",
+    "price": 9.00,
+    "description": "A creamy coffee drink made with espresso and steamed milk.",
+    "category": "Coffee",
+    "dietary": ["Vegetarian", "Gluten-Free"],
+    "image": "latte"
+  },
+  {
+    "name": "Green Tea",
+    "price": 10.00,
+    "description": "Refreshing herbal tea, suitable for people who is on diet",
+    "category": "Tea",
+    "dietary": ["Vegetarian", "Gluten-Free"],
+    "image": "green_tea"
+  },
+  {
+    "name": "English Breakfast Tea",
+    "price": 8.00,
+    "description": "A robust black tea blend, perfect for starting your day.",
+    "category": "Tea",
+    "dietary": ["Vegetarian", "Gluten-Free"],
+    "image": "english_breakfast_tea"
+  },
+  {
+    "name": "Matcha",
+    "price": 12.50,
+    "description": "A vibrant green tea powder whisked with hot water, known for its earthy flavor.",
+    "category": "Tea",
+    "dietary": ["Vegetarian", "Gluten-Free"],
+    "image": "matcha"
+  },
+  {
+    "name": "Croissant",
+    "price": 5.50,
+    "description": "Buttery pastry with a flaky crust and a golden center, yum!",
+    "category": "Pastries",
+    "dietary": ["Vegetarian"],
+    "image": "croissant"
+  },
+  {
+    "name": "Curry Puff",
+    "price": 2.50,
+    "description": "A savory pastry filled with spiced curry filling.",
+    "category": "Pastries",
+    "dietary": ["Vegetarian"],
+    "image": "curry_puff"
+  },
+  {
+    "name": "Cinnamon Roll",
+    "price": 8.00,
+    "description": "A sweet roll with cinnamon filling, topped with icing.",
+    "category": "Pastries",
+    "dietary": ["Vegetarian"],
+    "image": "cinnamon_roll"
+  }
+]

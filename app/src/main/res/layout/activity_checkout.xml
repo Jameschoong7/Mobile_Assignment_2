@@ -1,0 +1,190 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFF5E1">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="16dp">
+
+        <!-- Back Button -->
+        <Button
+            android:id="@+id/back_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Back to Menu"
+            android:backgroundTint="#8B4513"
+            android:textColor="#FFF5E1"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <TextView
+            android:id="@+id/checkout_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Checkout"
+            android:textSize="24sp"
+            android:textColor="#8B4513"
+            android:textStyle="bold"
+            app:layout_constraintTop_toBottomOf="@id/back_button"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <TextView
+            android:id="@+id/total_amount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Total: $0.00"
+            android:textSize="18sp"
+            android:textColor="#8B4513"
+            android:lines="3"
+            android:maxLines="3"
+            app:layout_constraintTop_toBottomOf="@id/checkout_title"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <!-- Payment Method Selection -->
+        <TextView
+            android:id="@+id/payment_method_label"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Payment Method"
+            android:textSize="18sp"
+            android:textColor="#8B4513"
+            app:layout_constraintTop_toBottomOf="@id/total_amount"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <RadioGroup
+            android:id="@+id/payment_method_group"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/payment_method_label"
+            app:layout_constraintStart_toStartOf="parent"
+            android:layout_marginTop="8dp">
+
+            <RadioButton
+                android:id="@+id/payment_card"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Card"
+                android:textColor="#8B4513"
+                android:buttonTint="#8B4513"
+                android:checked="true" />
+
+            <RadioButton
+                android:id="@+id/payment_wallet"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mobile Wallet"
+                android:textColor="#8B4513"
+                android:buttonTint="#8B4513" />
+        </RadioGroup>
+
+        <!-- Payment Form (Visible only for Card) -->
+        <LinearLayout
+            android:id="@+id/payment_form_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/payment_method_group"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp">
+
+            <EditText
+                android:id="@+id/card_number"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Card Number"
+                android:inputType="number"
+                android:textColor="#8B4513"
+                android:textColorHint="#A8A8A8"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/expiry_date"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Expiry Date (MM/YY)"
+                android:inputType="text"
+                android:textColor="#8B4513"
+                android:textColorHint="#A8A8A8"
+                android:layout_marginBottom="8dp" />
+
+            <EditText
+                android:id="@+id/cvv"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="CVV"
+                android:inputType="number"
+                android:textColor="#8B4513"
+                android:textColorHint="#A8A8A8"
+                android:layout_marginBottom="8dp" />
+
+            <CheckBox
+                android:id="@+id/save_payment_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save payment details for future orders"
+                android:textColor="#8B4513"
+                android:layout_marginBottom="16dp" />
+        </LinearLayout>
+
+        <!-- Pay Now Button (Always Visible) -->
+        <Button
+            android:id="@+id/pay_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="Pay Now"
+            android:backgroundTint="#8B4513"
+            android:textColor="#FFF5E1"
+            app:layout_constraintTop_toBottomOf="@id/payment_form_layout"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp" />
+
+        <!-- Payment Confirmation -->
+        <LinearLayout
+            android:id="@+id/payment_confirmation_layout"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            app:layout_constraintTop_toBottomOf="@id/total_amount"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="16dp">
+
+            <TextView
+                android:id="@+id/confirmation_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Payment Successful!"
+                android:textSize="20sp"
+                android:textColor="#8B4513"
+                android:layout_gravity="center" />
+
+            <TextView
+                android:id="@+id/receipt_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Receipt will appear here"
+                android:textSize="14sp"
+                android:textColor="#8B4513"
+                android:layout_marginTop="16dp" />
+
+            <Button
+                android:id="@+id/track_order_button"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Track Order"
+                android:backgroundTint="#A8D5BA"
+                android:textColor="#FFFFFF"
+                android:layout_marginTop="16dp" />
+        </LinearLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</ScrollView>

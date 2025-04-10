@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/homeFragment">
+
+    <fragment
+        android:id="@+id/homeFragment"
+        android:name="com.cet3014n.assignment1.HomeFragment"
+        android:label="Home" />
+    <fragment
+        android:id="@+id/cafeMenuFragment"
+        android:name="com.cet3014n.assignment1.CafeMenuFragment"
+        android:label="Cafe Menu" />
+    <fragment
+        android:id="@+id/rewardsFragment"
+        android:name="com.cet3014n.assignment1.RewardsFragment"
+        android:label="Rewards" />
+    <fragment
+        android:id="@+id/accountFragment"
+        android:name="com.cet3014n.assignment1.AccountFragment"
+        android:label="My Account" />
+</navigation>

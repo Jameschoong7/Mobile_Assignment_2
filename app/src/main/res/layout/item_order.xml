@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#FFF5E1"
+    android:padding="16dp">
+
+    <!-- Order ID -->
+    <TextView
+        android:id="@+id/order_id"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Order ID: ORDER_123"
+        android:textSize="16sp"
+        android:textColor="#8B4513"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Order Status -->
+    <TextView
+        android:id="@+id/order_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Status: Preparing"
+        android:textSize="14sp"
+        android:textColor="#8B4513"
+        app:layout_constraintTop_toBottomOf="@id/order_id"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- Order Items -->
+    <TextView
+        android:id="@+id/order_items"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Items: Latte (x1), Croissant (x2)"
+        android:textSize="14sp"
+        android:textColor="#8B4513"
+        app:layout_constraintTop_toBottomOf="@id/order_status"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- Completed Label -->
+    <TextView
+        android:id="@+id/completed_label"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Completed"
+        android:textSize="14sp"
+        android:textColor="#008000"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/order_items"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="16dp" />
+
+    <!-- Track on Map Button (Visible only for Delivery) -->
+    <Button
+        android:id="@+id/track_map_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Track on Map"
+        android:backgroundTint="#A8D5BA"
+        android:textColor="#FFFFFF"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/completed_label"
+        app:layout_constraintStart_toStartOf="parent"
+        android:layout_marginTop="8dp" />
+
+    <!-- Mark as Received Button -->
+    <Button
+        android:id="@+id/mark_received_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Mark as Received"
+        android:backgroundTint="#8B4513"
+        android:textColor="#FFF5E1"
+        app:layout_constraintTop_toBottomOf="@id/completed_label"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="8dp" />
+</androidx.constraintlayout.widget.ConstraintLayout>

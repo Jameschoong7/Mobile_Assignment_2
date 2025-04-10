@@ -1,7 +1,8 @@
 package com.cet3014n.assignment1
 
 import androidx.room.*
-// Product.kt
+import java.io.Serializable
+
 @Entity(tableName = "products")
 data class Product(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,
@@ -10,5 +11,6 @@ data class Product(
     val description: String,
     val category: String,
     val dietary: List<String>,
-    val image: String
-)
+    val imageResId: Int
+): Serializable
+

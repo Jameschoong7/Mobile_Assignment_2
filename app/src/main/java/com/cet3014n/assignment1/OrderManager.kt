@@ -5,13 +5,13 @@ object OrderManager {
 
     data class Order(
         val orderId: String,
-        val items: List<Pair<CoffeeMenuItem, Int>>,
+        val items: List<Pair<Product, Int>>, // Change CoffeeMenuItem to Product
         var status: String = "Preparing",
         val deliveryOption: String, // "Pickup" or "Delivery"
         val timestamp: Long = System.currentTimeMillis() // Add timestamp for sorting
     )
 
-    fun createOrder(orderId: String, items: List<Pair<CoffeeMenuItem, Int>>, deliveryOption: String) {
+    fun createOrder(orderId: String, items: List<Pair<Product, Int>>, deliveryOption: String) {
         orders[orderId] = Order(orderId, items, deliveryOption = deliveryOption)
         // Simulate status updates
         simulateOrderStatusUpdates(orderId, deliveryOption)

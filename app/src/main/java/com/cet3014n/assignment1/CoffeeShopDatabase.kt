@@ -11,6 +11,7 @@ import androidx.room.TypeConverters
 abstract class CoffeeShopDatabase : RoomDatabase() {
 
     abstract fun coffeeShopDao(): CoffeeShopDao
+    abstract fun productDao(): ProductDao
 
     companion object {
         @Volatile

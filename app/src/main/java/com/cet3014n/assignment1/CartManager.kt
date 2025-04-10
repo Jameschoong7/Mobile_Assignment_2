@@ -1,10 +1,13 @@
 package com.cet3014n.assignment1
 
 object CartManager {
-    private val cartItems = mutableListOf<Pair<CoffeeMenuItem, Int>>() // Item and quantity
+    private val cartItems = mutableListOf<Pair<Product, Int>>() // Item and quantity
 
-    fun addItem(item: CoffeeMenuItem, quantity: Int = 1) {
-        val existing = cartItems.find { it.first == item }
+    fun addItem(item: Product, quantity: Int = 1) {
+        // Find if the product already exists in the cart based on name and description (customized description)
+        val existing = cartItems.find {
+            it.first.name == item.name && it.first.description == item.description
+        }
         if (existing != null) {
             cartItems[cartItems.indexOf(existing)] = existing.copy(second = existing.second + quantity)
         } else {
@@ -12,9 +15,9 @@ object CartManager {
         }
     }
 
-    fun getItems(): List<Pair<CoffeeMenuItem, Int>> = cartItems.toList()
+    fun getItems(): List<Pair<Product, Int>> = cartItems.toList()
 
-    fun updateQuantity(item: CoffeeMenuItem, newQuantity: Int) {
+    fun updateQuantity(item: Product, newQuantity: Int) {
         val index = cartItems.indexOfFirst { it.first == item }
         if (index != -1) {
             if (newQuantity > 0) {

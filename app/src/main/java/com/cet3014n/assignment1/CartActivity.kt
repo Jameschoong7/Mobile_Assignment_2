@@ -19,16 +19,14 @@ class CartActivity : AppCompatActivity() {
     private lateinit var cartAdapter: CartAdapter
     private lateinit var backButton: Button
 
-    // Map of promo codes and their discount percentages (e.g., "SAVE10" -> 10% off)
     private val promoCodes = mapOf(
-        "SAVE10" to 0.10, // 10% off
-        "SAVE20" to 0.20, // 20% off
-        "SAVE5" to 0.05 // 5% off
+        "SAVE10" to 0.10,
+        "SAVE20" to 0.20,
+        "SAVE5" to 0.05
     )
 
-    // Track the applied discount and promo code
-    private var appliedDiscount: Double = 0.0 // Discount percentage (e.g., 0.10 for 10%)
-    private var appliedPromoCode: String? = null // Store the applied promo code
+    private var appliedDiscount: Double = 0.0
+    private var appliedPromoCode: String? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -41,7 +39,6 @@ class CartActivity : AppCompatActivity() {
         proceedButton = findViewById(R.id.proceed_button)
         backButton = findViewById(R.id.back_button)
 
-        // Handle back button click
         backButton.setOnClickListener {
             finish()
         }
@@ -53,13 +50,12 @@ class CartActivity : AppCompatActivity() {
         val deliveryRadioGroup = findViewById<RadioGroup>(R.id.delivery_radio_group)
 
         applyPromoButton.setOnClickListener {
-            val promoCode = promoCodeEditText.text.toString().trim().uppercase() // Case-insensitive
+            val promoCode = promoCodeEditText.text.toString().trim().uppercase()
             if (promoCode.isEmpty()) {
                 Toast.makeText(this, "Please enter a promo code", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            // Check if the promo code is valid
             val discount = promoCodes[promoCode]
             if (discount != null) {
                 appliedDiscount = discount
@@ -71,7 +67,6 @@ class CartActivity : AppCompatActivity() {
                 Toast.makeText(this, "Invalid promo code", Toast.LENGTH_SHORT).show()
             }
 
-            // Update the total with the applied discount
             updateTotalAmount(CartManager.getItems())
         }
 
@@ -86,7 +81,6 @@ class CartActivity : AppCompatActivity() {
             }
             val intent = Intent(this, CheckoutActivity::class.java)
             intent.putExtra("deliveryOption", deliveryOption)
-            // Pass the total amount and applied promo code to CheckoutActivity
             val cartItems = CartManager.getItems()
             val subtotal = cartItems.sumOf { it.first.price * it.second }
             val total = subtotal * (1 - appliedDiscount)
@@ -100,7 +94,7 @@ class CartActivity : AppCompatActivity() {
         updateTotalAmount(CartManager.getItems())
     }
 
-    fun updateTotalAmount(cartItems: List<Pair<CoffeeMenuItem, Int>>) {
+    fun updateTotalAmount(cartItems: List<Pair<Product, Int>>) {
         val subtotal = cartItems.sumOf { it.first.price * it.second }
         val discountAmount = subtotal * appliedDiscount
         val total = subtotal - discountAmount

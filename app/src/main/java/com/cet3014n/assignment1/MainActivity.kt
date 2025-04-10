@@ -3,18 +3,22 @@ package com.cet3014n.assignment1
 import android.content.Intent
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.NavController
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import androidx.room.*
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var productRepository: ProductRepository
     companion object {
         var INSTANCE: CoffeeShopDatabase? = null
     }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
 
 
         // Initialize the Room database
@@ -26,8 +30,14 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
-
-
+        val db = CoffeeShopDatabase.getDatabase(applicationContext)
+        val productDao = db.productDao()
+        productRepository = ProductRepository(productDao)
+        lifecycleScope.launch {
+            if (productDao.getAllProducts().isEmpty()) {
+                productRepository.insertSampleProducts()
+            }
+        }
         // Find the BottomNavigationView
         val navView: BottomNavigationView = findViewById(R.id.bottom_nav_view)
 

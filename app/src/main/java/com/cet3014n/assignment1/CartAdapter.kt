@@ -9,8 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 
 class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
 
-    // Use a mutable list that can be updated
-    private var items: List<Pair<CoffeeMenuItem, Int>> = CartManager.getItems()
+    private var items: List<Pair<Product, Int>> = CartManager.getItems()
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val name: TextView = itemView.findViewById(R.id.cart_item_name)
@@ -37,7 +36,6 @@ class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
         holder.decreaseButton.setOnClickListener {
             val newQuantity = quantity - 1
             CartManager.updateQuantity(item, newQuantity)
-            // Refresh the items list from CartManager
             items = CartManager.getItems()
             notifyDataSetChanged()
             (holder.itemView.context as? CartActivity)?.updateTotalAmount(items)
@@ -46,7 +44,6 @@ class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
         holder.increaseButton.setOnClickListener {
             val newQuantity = quantity + 1
             CartManager.updateQuantity(item, newQuantity)
-            // Refresh the items list from CartManager
             items = CartManager.getItems()
             notifyDataSetChanged()
             (holder.itemView.context as? CartActivity)?.updateTotalAmount(items)
@@ -55,7 +52,6 @@ class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
 
     override fun getItemCount() = items.size
 
-    //Method to refresh the adapter manually
     fun refreshItems() {
         items = CartManager.getItems()
         notifyDataSetChanged()

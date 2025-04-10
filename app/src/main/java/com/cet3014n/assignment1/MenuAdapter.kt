@@ -8,7 +8,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
-class MenuAdapter(private var items: List<CoffeeMenuItem>) :
+class MenuAdapter(private var items: List<Product>) :
     RecyclerView.Adapter<MenuAdapter.ViewHolder>() {
 
     class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -41,7 +41,7 @@ class MenuAdapter(private var items: List<CoffeeMenuItem>) :
 
     override fun getItemCount() = items.size
 
-    fun updateItems(newItems: List<CoffeeMenuItem>) {
+    fun updateItems(newItems: List<Product>) {
         items = newItems
         notifyDataSetChanged()
     }

@@ -2,6 +2,7 @@ package com.cet3014n.assignment1
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.view.*
 import android.widget.Button
 import android.widget.ImageView
@@ -17,6 +18,9 @@ import org.json.JSONArray
 import java.io.InputStream
 
 class CafeMenuFragment : Fragment() {
+    companion object {
+        private const val TAG = "CafeMenuFragment"
+    }
 
     private lateinit var recyclerView: RecyclerView
     private lateinit var menuAdapter: MenuAdapter
@@ -39,8 +43,14 @@ class CafeMenuFragment : Fragment() {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_menu, container, false)
+        return inflater.inflate(R.layout.fragment_menu, container, false)
+    }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        Log.d(TAG, "onViewCreated: Starting view initialization")
+
+        // Initialize views
         recyclerView = view.findViewById(R.id.menu_recycler)
         emptyMenuMessage = view.findViewById(R.id.empty_menu_message)
         categorySelectionLayout = view.findViewById(R.id.category_selection_layout)
@@ -49,16 +59,64 @@ class CafeMenuFragment : Fragment() {
         dietaryFilterGroup = view.findViewById(R.id.dietary_filter_group)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
+        Log.d(TAG, "onViewCreated: Views initialized")
 
+        // Initialize repository
         repository = CoffeeShopRepository(CoffeeShopDatabase.getDatabase(requireContext()).coffeeShopDao())
-        // Load menu items from Room
-        loadMenuFromDatabase()
 
-        return view
+        // Set up button listeners
+        setCategoryButtonListeners()
+
+        // Load menu items
+        loadMenuFromDatabase()
+    }
+
+    private fun setCategoryButtonListeners() {
+        Log.d(TAG, "setCategoryButtonListeners: Setting up listeners")
+        
+        val coffeeButton = view?.findViewById<LinearLayout>(R.id.category_coffee_button)
+        val teaButton = view?.findViewById<LinearLayout>(R.id.category_tea_button)
+        val pastriesButton = view?.findViewById<LinearLayout>(R.id.category_pastries_button)
+        val backButton = view?.findViewById<Button>(R.id.back_to_categories_button)
+
+        Log.d(TAG, "setCategoryButtonListeners: Buttons found - Coffee: $coffeeButton, Tea: $teaButton, Pastries: $pastriesButton, Back: $backButton")
+
+        coffeeButton?.setOnClickListener {
+            Log.d(TAG, "Coffee button clicked")
+            currentCategoryFilter = "Coffee"
+            categoryLabel.text = "Category: Coffee"
+            categorySelectionLayout.visibility = View.GONE
+            menuBrowsingLayout.visibility = View.VISIBLE
+            applyFilters()
+        }
+
+        teaButton?.setOnClickListener {
+            Log.d(TAG, "Tea button clicked")
+            currentCategoryFilter = "Tea"
+            categoryLabel.text = "Category: Tea"
+            categorySelectionLayout.visibility = View.GONE
+            menuBrowsingLayout.visibility = View.VISIBLE
+            applyFilters()
+        }
+
+        pastriesButton?.setOnClickListener {
+            Log.d(TAG, "Pastries button clicked")
+            currentCategoryFilter = "Pastries"
+            categoryLabel.text = "Category: Pastries"
+            categorySelectionLayout.visibility = View.GONE
+            menuBrowsingLayout.visibility = View.VISIBLE
+            applyFilters()
+        }
+
+        backButton?.setOnClickListener {
+            Log.d(TAG, "Back button clicked")
+            currentCategoryFilter = null
+            categorySelectionLayout.visibility = View.VISIBLE
+            menuBrowsingLayout.visibility = View.GONE
+        }
     }
 
     private fun loadMenuFromDatabase() {
-        // Use a coroutine or lifecycle scope to run database queries on a background thread
         lifecycleScope.launch {
             val allProducts = repository.getAllProducts()
             allMenuItems = allProducts
@@ -88,3 +146,4 @@ class CafeMenuFragment : Fragment() {
         }
     }
 }
+

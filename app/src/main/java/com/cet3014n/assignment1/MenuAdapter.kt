@@ -1,6 +1,7 @@
 package com.cet3014n.assignment1
 
 import android.content.Intent
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -33,6 +34,7 @@ class MenuAdapter(private var items: List<Product>) :
         holder.image.setImageResource(item.imageResId)
 
         holder.itemView.setOnClickListener {
+            Log.d("MenuAdapter", "Item clicked: ${item.name}") // Check if it's triggered
             val intent = Intent(holder.itemView.context, CustomizeOrderActivity::class.java)
             intent.putExtra("menuItem", item)
             holder.itemView.context.startActivity(intent)

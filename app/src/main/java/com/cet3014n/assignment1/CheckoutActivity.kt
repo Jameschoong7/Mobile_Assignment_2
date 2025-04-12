@@ -82,15 +82,29 @@ class CheckoutActivity : AppCompatActivity() {
         promoCode = intent.getStringExtra("promoCode")
         discount = intent.getDoubleExtra("discount", 0.0)
 
+        // Check for redeemed discount
+        val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        val redeemedDiscount = sharedPreferences.getFloat("redeemedDiscount", 0f).toDouble()
+        
+        // Apply redeemed discount if available
+        if (redeemedDiscount > 0) {
+            total -= redeemedDiscount
+            // Clear the redeemed discount after applying it
+            sharedPreferences.edit().remove("redeemedDiscount").apply()
+        }
+
         // Display the total with discount (if applied)
         totalAmountTextView.text = buildString {
             append("Subtotal: RM%.2f".format(subtotal))
             if (discount > 0 && promoCode != null) {
                 append("\nDiscount ($promoCode): -RM%.2f".format(subtotal * discount))
             }
+            if (redeemedDiscount > 0) {
+                append("\nRedeemed Points Discount: -RM%.2f".format(redeemedDiscount))
+            }
             append("\nTotal: RM%.2f".format(total))
             // Add points earning information
-            val rewardPoints = maxOf(1, (total * 0.01).toInt())
+            val rewardPoints = maxOf(1, (total * 0.1).toInt())
             append("\n\nYou will earn: $rewardPoints points")
         }
 
@@ -98,7 +112,6 @@ class CheckoutActivity : AppCompatActivity() {
         paymentConfirmationLayout.visibility = View.GONE
 
         // Load saved payment details if they exist
-        val sharedPreferences = getSharedPreferences("PaymentPrefs", MODE_PRIVATE)
         val savedCardNumber = sharedPreferences.getString("card_number", null)
         val savedExpiryDate = sharedPreferences.getString("expiry_date", null)
         val savedCvv = sharedPreferences.getString("cvv", null)
@@ -277,7 +290,7 @@ class CheckoutActivity : AppCompatActivity() {
                     repository.insertOrderItem(orderItem)
                 }
 
-                // Calculate and add reward points (1% of total amount, minimum 1 point)
+                // Calculate and add reward points (10% of total amount, minimum 1 point)
                 val rewardPoints = maxOf(1, (total * 0.01).toInt())
                 Log.d("CheckoutActivity", "Total amount: $total")
                 Log.d("CheckoutActivity", "Calculated reward points: $rewardPoints")
@@ -319,7 +332,7 @@ class CheckoutActivity : AppCompatActivity() {
         paymentFormLayout.visibility = View.GONE
         paymentConfirmationLayout.visibility = View.VISIBLE
 
-        val rewardPoints = maxOf(1, (total * 0.01).toInt())
+        val rewardPoints = maxOf(1, (total * 0.1).toInt())
         val receiptText = buildString {
             append("Order ID: $orderId\n")
             append("Total Paid: RM ${String.format("%.2f", total)}\n")

@@ -72,6 +72,7 @@ class RewardsFragment : Fragment() {
                 if (userEmail == null) {
                     pointsBalanceText.text = "Please log in to view rewards"
                     redeemButton.isEnabled = false
+                    redeemButton.alpha = 0.5f // Make button appear greyed out
                     return@launch
                 }
 
@@ -82,12 +83,22 @@ class RewardsFragment : Fragment() {
                 if (user == null) {
                     pointsBalanceText.text = "User not found"
                     redeemButton.isEnabled = false
+                    redeemButton.alpha = 0.5f // Make button appear greyed out
                     return@launch
                 }
 
                 // Update points display
                 pointsBalanceText.text = "Points Balance: ${user.loyaltyPoints}"
-                redeemButton.isEnabled = user.loyaltyPoints > 0
+                
+                // Update redeem button state
+                if (user.loyaltyPoints > 0) {
+                    redeemButton.isEnabled = true
+                    redeemButton.alpha = 1.0f // Make button fully visible
+                } else {
+                    redeemButton.isEnabled = false
+                    redeemButton.alpha = 0.5f // Make button appear greyed out
+                }
+                
                 Log.d("RewardsFragment", "Points balance updated: ${user.loyaltyPoints}")
             } catch (e: Exception) {
                 Log.e("RewardsFragment", "Error loading user data", e)
@@ -191,6 +202,13 @@ class RewardsFragment : Fragment() {
 
                         // Calculate discount (1 point = RM 0.01)
                         val discount = pointsToRedeem * 0.01
+
+                        // Store the redeemed discount in SharedPreferences
+                        val sharedPrefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                        sharedPrefs.edit().apply {
+                            putFloat("redeemedDiscount", discount.toFloat())
+                            apply()
+                        }
 
                         // Create reward transaction
                         val rewardTransaction = RewardTransaction(

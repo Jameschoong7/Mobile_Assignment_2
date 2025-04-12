@@ -31,6 +31,7 @@ class CafeMenuFragment : Fragment() {
     private lateinit var menuBrowsingLayout: LinearLayout
     private lateinit var categoryLabel: TextView
     private lateinit var dietaryFilterGroup: RadioGroup
+    private lateinit var cartIcon: ImageView
     private var currentCategoryFilter: String? = null
     private var currentDietaryFilter: String = "All Dietary"
 
@@ -57,6 +58,7 @@ class CafeMenuFragment : Fragment() {
         menuBrowsingLayout = view.findViewById(R.id.menu_browsing_layout)
         categoryLabel = view.findViewById(R.id.category_label)
         dietaryFilterGroup = view.findViewById(R.id.dietary_filter_group)
+        cartIcon = view.findViewById(R.id.cart_icon)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         Log.d(TAG, "onViewCreated: Views initialized")
@@ -66,6 +68,7 @@ class CafeMenuFragment : Fragment() {
 
         // Set up button listeners
         setCategoryButtonListeners()
+        setupCartIcon()
 
         // Load menu items
         loadMenuFromDatabase()
@@ -113,6 +116,14 @@ class CafeMenuFragment : Fragment() {
             currentCategoryFilter = null
             categorySelectionLayout.visibility = View.VISIBLE
             menuBrowsingLayout.visibility = View.GONE
+        }
+    }
+
+    private fun setupCartIcon() {
+        cartIcon.setOnClickListener {
+            Log.d(TAG, "Cart icon clicked")
+            val intent = Intent(requireContext(), CartActivity::class.java)
+            startActivity(intent)
         }
     }
 

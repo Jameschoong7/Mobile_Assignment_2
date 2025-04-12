@@ -29,7 +29,7 @@ class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val (item, quantity) = items[position]
         holder.name.text = item.name
-        holder.price.text = "RM${String.format("%.2f", item.price)}"
+        holder.price.text = "RM ${String.format("%.2f", item.price)}"
         holder.customizations.text = item.description
         holder.quantity.text = quantity.toString()
 
@@ -38,7 +38,7 @@ class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
             CartManager.updateQuantity(item, newQuantity)
             items = CartManager.getItems()
             notifyDataSetChanged()
-            (holder.itemView.context as? CartActivity)?.updateTotalAmount(items)
+            (holder.itemView.context as? CartActivity)?.updateTotalAmount()
         }
 
         holder.increaseButton.setOnClickListener {
@@ -46,7 +46,7 @@ class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
             CartManager.updateQuantity(item, newQuantity)
             items = CartManager.getItems()
             notifyDataSetChanged()
-            (holder.itemView.context as? CartActivity)?.updateTotalAmount(items)
+            (holder.itemView.context as? CartActivity)?.updateTotalAmount()
         }
     }
 

@@ -1,6 +1,5 @@
 package com.cet3014n.assignment1
 
-
 import androidx.room.*
 
 // Order.kt
@@ -10,6 +9,11 @@ data class Order(
     val userId: Long,
     val status: OrderStatus = OrderStatus.PREPARING,
     val deliveryOption: String,
+    val deliveryAddress: String?,
+    val subtotal: Double,
+    val total: Double,
+    val promoCode: String?,
+    val discount: Double,
     val timestamp: Long = System.currentTimeMillis()
 )
 

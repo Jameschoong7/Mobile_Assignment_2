@@ -1,5 +1,6 @@
 package com.cet3014n.assignment1
 
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -12,6 +13,10 @@ import android.widget.RadioGroup
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.*
 
 class CheckoutActivity : AppCompatActivity() {
     private lateinit var totalAmountTextView: TextView
@@ -31,6 +36,8 @@ class CheckoutActivity : AppCompatActivity() {
     private var total: Double = 0.0
     private var discount: Double = 0.0
     private var promoCode: String? = null
+    private var deliveryAddress:String?=null
+    private lateinit var repository: CoffeeShopRepository
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +46,9 @@ class CheckoutActivity : AppCompatActivity() {
         supportActionBar?.apply {
             title = "Checkout"
         }
+
+        // Initialize repository
+        repository = CoffeeShopRepository(CoffeeShopDatabase.getDatabase(applicationContext).coffeeShopDao())
 
         totalAmountTextView = findViewById(R.id.total_amount)
         paymentMethodGroup = findViewById(R.id.payment_method_group)
@@ -65,6 +75,7 @@ class CheckoutActivity : AppCompatActivity() {
 
         // Retrieve data from CartActivity
         val deliveryOption = intent.getStringExtra("deliveryOption") ?: "Pickup"
+        deliveryAddress = intent.getStringExtra("deliveryAddress")
         subtotal = intent.getDoubleExtra("subtotal", 0.0)
         total = intent.getDoubleExtra("total", 0.0)
         promoCode = intent.getStringExtra("promoCode")
@@ -217,6 +228,83 @@ class CheckoutActivity : AppCompatActivity() {
 
         // Clear the cart after successful payment
         CartManager.clearCart()
+
+        // Update database
+        lifecycleScope.launch {
+            try {
+                // Get current user's email from SharedPreferences
+                val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                val userEmail = sharedPreferences.getString("loggedInUserEmail", null)
+                
+                if (userEmail == null) {
+                    Toast.makeText(this@CheckoutActivity, "Please log in to place an order", Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
+                // Get user from database
+                val user = repository.getUserByEmail(userEmail)
+                if (user == null) {
+                    Toast.makeText(this@CheckoutActivity, "User not found", Toast.LENGTH_LONG).show()
+                    return@launch
+                }
+
+                // Create order
+                val order = Order(
+                    orderId = orderId,
+                    userId = user.id,
+                    status = OrderStatus.PREPARING,
+                    deliveryOption = deliveryOption,
+                    deliveryAddress = deliveryAddress,
+                    subtotal = subtotal,
+                    total = total,
+                    promoCode = promoCode,
+                    discount = discount,
+                    timestamp = System.currentTimeMillis()
+                )
+                repository.insertOrder(order)
+
+                // Create order items
+                for ((product, quantity) in cartItems) {
+                    val orderItem = OrderItem(
+                        orderId = orderId,
+                        productId = product.id,
+                        quantity = quantity
+                    )
+                    repository.insertOrderItem(orderItem)
+                }
+
+                // Clear cart after successful order
+                CartManager.clearCart()
+
+                // Show success UI
+                showPaymentConfirmation(orderId, deliveryOption, deliveryAddress, total)
+            } catch (e: Exception) {
+                Toast.makeText(this@CheckoutActivity, "Error processing payment: ${e.message}", Toast.LENGTH_LONG).show()
+            }
+        }
+    }
+
+    private fun showPaymentConfirmation(orderId: String, deliveryOption: String, deliveryAddress: String?, total: Double) {
+        paymentFormLayout.visibility = View.GONE
+        paymentConfirmationLayout.visibility = View.VISIBLE
+
+        val receiptText = buildString {
+            append("Order ID: $orderId\n")
+            append("Delivery: $deliveryOption\n")
+            if (deliveryOption == "Delivery" && deliveryAddress != null) {
+                append("Address: $deliveryAddress\n")
+            }
+            append("Total Paid: RM ${String.format("%.2f", total)}\n")
+            append("\nThank you for your order!")
+        }
+        receiptTextView.text = receiptText
+
+        trackOrderButton.setOnClickListener {
+            val intent = Intent(this, OrderTrackingActivity::class.java)
+            intent.putExtra("orderId", orderId)
+            startActivity(intent)
+            finish()
+        }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {

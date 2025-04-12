@@ -29,6 +29,8 @@
         android:layout_height="63dp"
         android:src="@drawable/ic_cart"
         android:contentDescription="Cart"
+        android:clickable="true"
+        android:focusable="true"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

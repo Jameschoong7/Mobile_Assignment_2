@@ -1,6 +1,7 @@
 package com.cet3014n.assignment1
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface CoffeeShopDao {
@@ -52,4 +53,17 @@ interface CoffeeShopDao {
 
     @Query("SELECT * FROM order_items WHERE orderId = :orderId")
     suspend fun getItemsForOrder(orderId: String): List<OrderItem>
+
+    // Reward Transaction methods
+    @Insert
+    suspend fun insertRewardTransaction(transaction: RewardTransaction)
+
+    @Query("SELECT * FROM reward_transactions WHERE userId = :userId ORDER BY timestamp DESC")
+    fun getRewardTransactions(userId: Long): Flow<List<RewardTransaction>>
+
+    @Query("SELECT SUM(points) FROM reward_transactions WHERE userId = :userId")
+    fun getTotalRewardPoints(userId: Long): Flow<Int>
+
+    @Query("SELECT * FROM reward_transactions WHERE userId = :userId AND type = :type ORDER BY timestamp DESC")
+    fun getRewardTransactionsByType(userId: Long, type: TransactionType): Flow<List<RewardTransaction>>
 }

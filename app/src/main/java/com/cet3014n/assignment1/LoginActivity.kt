@@ -1,5 +1,6 @@
 package com.cet3014n.assignment1
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -42,6 +43,10 @@ class LoginActivity : AppCompatActivity() {
                 val user = repository.getUserByEmail(email)
                 if (user != null && user.password == password) {
                     runOnUiThread {
+                        // Store user's email in SharedPreferences
+                        val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                        sharedPreferences.edit().putString("loggedInUserEmail", email).apply()
+                        
                         // Successful login
                         Toast.makeText(this@LoginActivity, "Login successful", Toast.LENGTH_SHORT).show()
                         val intent = Intent(this@LoginActivity, MainActivity::class.java)

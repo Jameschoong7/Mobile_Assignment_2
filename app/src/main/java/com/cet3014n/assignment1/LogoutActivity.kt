@@ -1,5 +1,6 @@
 package com.cet3014n.assignment1
 
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -15,6 +16,9 @@ class LogoutActivity : AppCompatActivity() {
         val cancelButton = findViewById<Button>(R.id.logout_cancel_button)
 
         logoutButton.setOnClickListener {
+            // Clear stored user email
+            val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+            sharedPreferences.edit().remove("loggedInUserEmail").apply()
 
             Toast.makeText(this, "Logged out successfully!", Toast.LENGTH_SHORT).show()
             startActivity(Intent(this, LoginActivity::class.java))

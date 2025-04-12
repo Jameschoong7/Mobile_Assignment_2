@@ -11,8 +11,8 @@ import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
-import org.json.JSONArray
-import org.json.JSONObject
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
 
 class AccountFragment : Fragment() {
     private lateinit var usernameText: TextView
@@ -27,12 +27,16 @@ class AccountFragment : Fragment() {
     private lateinit var saveProfileButton: Button
     private lateinit var logoutButton: Button
     private var isEditing = false
+    private lateinit var repository: CoffeeShopRepository
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         val view = inflater.inflate(R.layout.fragment_account, container, false)
+
+        // Initialize repository
+        repository = CoffeeShopRepository(CoffeeShopDatabase.getDatabase(requireContext()).coffeeShopDao())
 
         // Initialize views
         usernameText = view.findViewById(R.id.username_text)
@@ -47,46 +51,8 @@ class AccountFragment : Fragment() {
         saveProfileButton = view.findViewById(R.id.save_profile_button)
         logoutButton = view.findViewById(R.id.logout_button)
 
-        // Load user data from SharedPreferences
-        val sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
-        val loggedInUserEmail = sharedPreferences.getString("loggedInUserEmail", null)
-
-        if (loggedInUserEmail == null) {
-            usernameText.text = "Not logged in"
-            emailText.text = ""
-            phoneText.text = ""
-            addressText.text = ""
-            editProfileButton.visibility = View.GONE
-            logoutButton.visibility = View.GONE
-            return view
-        }
-
-        // Retrieve the list of users
-        val usersJsonString = sharedPreferences.getString("users", null)
-        var username = "User"
-        var email = "Not set"
-        var phone = "Not set"
-        var address = "Not set"
-
-        if (usersJsonString != null) {
-            val usersArray = JSONArray(usersJsonString)
-            for (i in 0 until usersArray.length()) {
-                val user = usersArray.getJSONObject(i)
-                if (user.getString("email") == loggedInUserEmail) {
-                    username = user.optString("username", "User")
-                    email = user.optString("email", "Not set")
-                    phone = user.optString("phone", "Not set")
-                    address = user.optString("address", "Not set")
-                    break
-                }
-            }
-        }
-
-        // Display user data
-        usernameText.text = "Username: $username"
-        emailText.text = "Email: $email"
-        phoneText.text = "Phone: $phone"
-        addressText.text = "Address: $address"
+        // Load user data from database
+        loadUserData()
 
         // Set initial visibility
         editUsername.visibility = View.GONE
@@ -100,10 +66,10 @@ class AccountFragment : Fragment() {
             if (!isEditing) {
                 // Switch to edit mode
                 isEditing = true
-                editUsername.setText(username)
-                editEmail.setText(email)
-                editPhone.setText(phone)
-                editAddress.setText(address)
+                editUsername.setText(usernameText.text.toString().replace("Username: ", ""))
+                editEmail.setText(emailText.text.toString().replace("Email: ", ""))
+                editPhone.setText(phoneText.text.toString().replace("Phone: ", ""))
+                editAddress.setText(addressText.text.toString().replace("Address: ", ""))
 
                 usernameText.visibility = View.GONE
                 emailText.visibility = View.GONE
@@ -131,84 +97,121 @@ class AccountFragment : Fragment() {
                 return@setOnClickListener
             }
 
-            // Retrieve the list of users again to update
-            val usersJsonStringUpdated = sharedPreferences.getString("users", null)
-            if (usersJsonStringUpdated == null) {
-                Toast.makeText(requireContext(), "Error: User data not found", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
+            lifecycleScope.launch {
+                try {
+                    // Get current user's email from SharedPreferences
+                    val sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                    val currentEmail = sharedPreferences.getString("loggedInUserEmail", null)
+                    
+                    if (currentEmail == null) {
+                        Toast.makeText(requireContext(), "User not logged in", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
 
-            val usersArray = JSONArray(usersJsonStringUpdated)
-            var userFound = false
-            var oldEmail = ""
+                    // Get current user
+                    val currentUser = repository.getUserByEmail(currentEmail)
+                    if (currentUser == null) {
+                        Toast.makeText(requireContext(), "User not found", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
 
-            // Find the user and update their data
-            for (i in 0 until usersArray.length()) {
-                val user = usersArray.getJSONObject(i)
-                if (user.getString("email") == loggedInUserEmail) {
-                    oldEmail = user.getString("email")
-                    user.put("username", newUsername)
-                    user.put("email", newEmail)
-                    user.put("phone", newPhone)
-                    user.put("address", newAddress)
-                    userFound = true
-                    break
+                    // Check if new email is already taken by another user
+                    if (newEmail != currentEmail) {
+                        val existingUser = repository.getUserByEmail(newEmail)
+                        if (existingUser != null) {
+                            Toast.makeText(requireContext(), "Email already in use by another user", Toast.LENGTH_SHORT).show()
+                            return@launch
+                        }
+                    }
+
+                    // Update user
+                    val updatedUser = currentUser.copy(
+                        username = newUsername,
+                        email = newEmail,
+                        phone = newPhone,
+                        address = newAddress
+                    )
+                    repository.updateUser(updatedUser)
+
+                    // Update SharedPreferences if email changed
+                    if (newEmail != currentEmail) {
+                        sharedPreferences.edit().putString("loggedInUserEmail", newEmail).apply()
+                    }
+
+                    // Update display
+                    usernameText.text = "Username: $newUsername"
+                    emailText.text = "Email: $newEmail"
+                    phoneText.text = "Phone: $newPhone"
+                    addressText.text = "Address: $newAddress"
+
+                    // Switch back to view mode
+                    isEditing = false
+                    usernameText.visibility = View.VISIBLE
+                    emailText.visibility = View.VISIBLE
+                    phoneText.visibility = View.VISIBLE
+                    addressText.visibility = View.VISIBLE
+                    editUsername.visibility = View.GONE
+                    editEmail.visibility = View.GONE
+                    editPhone.visibility = View.GONE
+                    editAddress.visibility = View.GONE
+                    editProfileButton.visibility = View.VISIBLE
+                    saveProfileButton.visibility = View.GONE
+
+                    Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(requireContext(), "Error updating profile: ${e.message}", Toast.LENGTH_SHORT).show()
                 }
             }
-
-            if (!userFound) {
-                Toast.makeText(requireContext(), "Error: User not found", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Check for email conflicts with other users
-            for (i in 0 until usersArray.length()) {
-                val user = usersArray.getJSONObject(i)
-                val userEmail = user.getString("email")
-                if (userEmail == newEmail && userEmail != oldEmail) {
-                    Toast.makeText(requireContext(), "Email already in use by another user", Toast.LENGTH_SHORT).show()
-                    return@setOnClickListener
-                }
-            }
-
-            // Save the updated users array back to SharedPreferences
-            val editor = sharedPreferences.edit()
-            editor.putString("users", usersArray.toString())
-            // Update the logged-in user email if it changed
-            if (newEmail != loggedInUserEmail) {
-                editor.putString("loggedInUserEmail", newEmail)
-            }
-            editor.apply()
-
-            // Update display
-            usernameText.text = "Username: $newUsername"
-            emailText.text = "Email: $newEmail"
-            phoneText.text = "Phone: $newPhone"
-            addressText.text = "Address: $newAddress"
-
-            // Switch back to view mode
-            isEditing = false
-            usernameText.visibility = View.VISIBLE
-            emailText.visibility = View.VISIBLE
-            phoneText.visibility = View.VISIBLE
-            addressText.visibility = View.VISIBLE
-            editUsername.visibility = View.GONE
-            editEmail.visibility = View.GONE
-            editPhone.visibility = View.GONE
-            editAddress.visibility = View.GONE
-            editProfileButton.visibility = View.VISIBLE
-            saveProfileButton.visibility = View.GONE
-
-            Toast.makeText(requireContext(), "Profile updated successfully", Toast.LENGTH_SHORT).show()
         }
 
         // Logout button click
         logoutButton.setOnClickListener {
-            // Navigate to LogoutActivity
             val intent = Intent(requireActivity(), LogoutActivity::class.java)
             startActivity(intent)
         }
 
         return view
+    }
+
+    private fun loadUserData() {
+        lifecycleScope.launch {
+            try {
+                // Get current user's email from SharedPreferences
+                val sharedPreferences = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                val userEmail = sharedPreferences.getString("loggedInUserEmail", null)
+
+                if (userEmail == null) {
+                    usernameText.text = "Not logged in"
+                    emailText.text = ""
+                    phoneText.text = ""
+                    addressText.text = ""
+                    editProfileButton.visibility = View.GONE
+                    logoutButton.visibility = View.GONE
+                    return@launch
+                }
+
+                // Get user from database
+                val user = repository.getUserByEmail(userEmail)
+                if (user == null) {
+                    usernameText.text = "User not found"
+                    emailText.text = ""
+                    phoneText.text = ""
+                    addressText.text = ""
+                    editProfileButton.visibility = View.GONE
+                    logoutButton.visibility = View.GONE
+                    return@launch
+                }
+
+                // Display user data
+                usernameText.text = "Username: ${user.username}"
+                emailText.text = "Email: ${user.email}"
+                phoneText.text = "Phone: ${user.phone}"
+                addressText.text = "Address: ${user.address}"
+                editProfileButton.visibility = View.VISIBLE
+                logoutButton.visibility = View.VISIBLE
+            } catch (e: Exception) {
+                Toast.makeText(requireContext(), "Error loading user data: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
+        }
     }
 }

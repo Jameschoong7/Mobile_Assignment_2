@@ -6,7 +6,17 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [User::class, Product::class, Order::class, OrderItem::class], version = 1, exportSchema = false)
+@Database(
+    entities = [
+        User::class,
+        Product::class,
+        Order::class,
+        OrderItem::class,
+        RewardTransaction::class
+    ],
+    version = 1,
+    exportSchema = false
+)
 @TypeConverters(Converters::class)  // Register the TypeConverters class
 abstract class CoffeeShopDatabase : RoomDatabase() {
 

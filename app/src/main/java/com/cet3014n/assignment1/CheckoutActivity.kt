@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
@@ -88,6 +89,9 @@ class CheckoutActivity : AppCompatActivity() {
                 append("\nDiscount ($promoCode): -RM%.2f".format(subtotal * discount))
             }
             append("\nTotal: RM%.2f".format(total))
+            // Add points earning information
+            val rewardPoints = maxOf(1, (total * 0.01).toInt())
+            append("\n\nYou will earn: $rewardPoints points")
         }
 
         // Initially hide the confirmation layout
@@ -273,28 +277,53 @@ class CheckoutActivity : AppCompatActivity() {
                     repository.insertOrderItem(orderItem)
                 }
 
+                // Calculate and add reward points (1% of total amount, minimum 1 point)
+                val rewardPoints = maxOf(1, (total * 0.01).toInt())
+                Log.d("CheckoutActivity", "Total amount: $total")
+                Log.d("CheckoutActivity", "Calculated reward points: $rewardPoints")
+                
+                if (rewardPoints > 0) {
+                    Log.d("CheckoutActivity", "Creating reward transaction for user ${user.id}")
+                    // Create reward transaction
+                    val rewardTransaction = RewardTransaction(
+                        userId = user.id,
+                        points = rewardPoints,
+                        type = TransactionType.EARNED,
+                        description = "Points earned from order #$orderId"
+                    )
+                    Log.d("CheckoutActivity", "Inserting reward transaction: $rewardTransaction")
+                    repository.insertRewardTransaction(rewardTransaction)
+
+                    // Update user's loyalty points
+                    val updatedUser = user.copy(loyaltyPoints = user.loyaltyPoints + rewardPoints)
+                    Log.d("CheckoutActivity", "Updating user points: ${user.loyaltyPoints} -> ${updatedUser.loyaltyPoints}")
+                    repository.updateUser(updatedUser)
+                    
+                    Log.d("CheckoutActivity", "Reward points added successfully")
+                } else {
+                    Log.d("CheckoutActivity", "No reward points to add (rewardPoints <= 0)")
+                }
+
                 // Clear cart after successful order
                 CartManager.clearCart()
 
-                // Show success UI
-                showPaymentConfirmation(orderId, deliveryOption, deliveryAddress, total)
+                // Show payment confirmation
+                showPaymentConfirmation(orderId, total)
             } catch (e: Exception) {
-                Toast.makeText(this@CheckoutActivity, "Error processing payment: ${e.message}", Toast.LENGTH_LONG).show()
+                Toast.makeText(this@CheckoutActivity, "Error processing order: ${e.message}", Toast.LENGTH_LONG).show()
             }
         }
     }
 
-    private fun showPaymentConfirmation(orderId: String, deliveryOption: String, deliveryAddress: String?, total: Double) {
+    private fun showPaymentConfirmation(orderId: String, total: Double) {
         paymentFormLayout.visibility = View.GONE
         paymentConfirmationLayout.visibility = View.VISIBLE
 
+        val rewardPoints = maxOf(1, (total * 0.01).toInt())
         val receiptText = buildString {
             append("Order ID: $orderId\n")
-            append("Delivery: $deliveryOption\n")
-            if (deliveryOption == "Delivery" && deliveryAddress != null) {
-                append("Address: $deliveryAddress\n")
-            }
             append("Total Paid: RM ${String.format("%.2f", total)}\n")
+            append("Points Earned: $rewardPoints\n")
             append("\nThank you for your order!")
         }
         receiptTextView.text = receiptText

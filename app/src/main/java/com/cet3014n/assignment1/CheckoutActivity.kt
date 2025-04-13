@@ -18,6 +18,8 @@ import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 
 class CheckoutActivity : AppCompatActivity() {
     private lateinit var totalAmountTextView: TextView
@@ -39,6 +41,8 @@ class CheckoutActivity : AppCompatActivity() {
     private var promoCode: String? = null
     private var deliveryAddress:String?=null
     private lateinit var repository: CoffeeShopRepository
+    private lateinit var saveAsFavoriteCheckbox: CheckBox
+    private lateinit var favoriteOrderNameInput: EditText
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -49,7 +53,7 @@ class CheckoutActivity : AppCompatActivity() {
         }
 
         // Initialize repository
-        repository = CoffeeShopRepository(CoffeeShopDatabase.getDatabase(applicationContext).coffeeShopDao())
+        repository = CoffeeShopRepository(CoffeeShopDatabase.getDatabase(this).coffeeShopDao())
 
         totalAmountTextView = findViewById(R.id.total_amount)
         paymentMethodGroup = findViewById(R.id.payment_method_group)
@@ -63,6 +67,8 @@ class CheckoutActivity : AppCompatActivity() {
         receiptTextView = findViewById(R.id.receipt_text)
         trackOrderButton = findViewById(R.id.track_order_button)
         backButton = findViewById(R.id.back_button)
+        saveAsFavoriteCheckbox = findViewById(R.id.save_as_favorite_checkbox)
+        favoriteOrderNameInput = findViewById(R.id.favorite_order_name)
 
         // Handle back button click
         backButton.setOnClickListener {
@@ -191,6 +197,12 @@ class CheckoutActivity : AppCompatActivity() {
             payButton.visibility = View.GONE
             paymentConfirmationLayout.visibility = View.VISIBLE
         }
+
+        // Setup checkbox listener
+        saveAsFavoriteCheckbox.setOnCheckedChangeListener { _, isChecked ->
+            favoriteOrderNameInput.visibility = if (isChecked) View.VISIBLE else View.GONE
+        }
+
     }
 
     override fun onResume() {
@@ -207,44 +219,11 @@ class CheckoutActivity : AppCompatActivity() {
         // Simulate payment success
         Toast.makeText(this, "Payment successful!", Toast.LENGTH_SHORT).show()
 
-        // Generate a receipt
-        val cartItems = CartManager.getItems()
-        val receipt = buildString {
-            append("----- Payment Receipt -----\n")
-            append("Date: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(java.util.Date())}\n\n")
-            append("Items:\n")
-            cartItems.forEach { (item, quantity) ->
-                append("${item.name} (x$quantity): RM%.2f\n".format(item.price * quantity))
-            }
-            append("\nSubtotal: RM%.2f\n".format(subtotal))
-            if (discount > 0 && promoCode != null) {
-                append("Discount ($promoCode): -RM%.2f\n".format(subtotal * discount))
-            }
-            append("Total: RM%.2f\n".format(total))
-            append("Payment Method: $paymentMethod\n")
-            if (paymentMethod == "Card") {
-                append("Card ending in: ${cardNumber.takeLast(4)}\n")
-            }
-            append("Delivery Option: $deliveryOption\n")
-            append("--------------------------")
-        }
-
-        // Show confirmation and receipt
-        paymentConfirmationLayout.visibility = View.VISIBLE
-        receiptTextView.text = receipt
-
-        // Hide payment form and related UI elements
-        paymentFormLayout.visibility = View.GONE
-        paymentMethodGroup.visibility = View.GONE
-        findViewById<TextView>(R.id.payment_method_label).visibility = View.GONE
-        payButton.visibility = View.GONE
-
         // Create an order for tracking
         val orderId = "ORDER_${System.currentTimeMillis()}"
+        val cartItems = CartManager.getItems().toList()
+        Log.d("Cart Items",cartItems.toString())
         OrderManager.createOrder(orderId, cartItems, deliveryOption)
-
-        // Clear the cart after successful payment
-        CartManager.clearCart()
 
         // Update database
         lifecycleScope.launch {
@@ -317,11 +296,56 @@ class CheckoutActivity : AppCompatActivity() {
                     Log.d("CheckoutActivity", "No reward points to add (rewardPoints <= 0)")
                 }
 
-                // Clear cart after successful order
-                CartManager.clearCart()
+                // After successful payment, check if we should save as favorite
+                if (saveAsFavoriteCheckbox.isChecked) {
+                    val name = favoriteOrderNameInput.text.toString().trim()
+                    if (name.isEmpty()) {
+                        Toast.makeText(this@CheckoutActivity, "Please enter a name for your favorite order", Toast.LENGTH_SHORT).show()
+                        return@launch
+                    }
+                    
+                    saveAsFavoriteOrder(name,cartItems)
+                }
 
-                // Show payment confirmation
-                showPaymentConfirmation(orderId, total)
+                // Generate receipt after saving favorite order
+                val receipt = buildString {
+                    append("----- Payment Receipt -----\n")
+                    append("Date: ${java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss").format(java.util.Date())}\n\n")
+                    append("Items:\n")
+                    cartItems.forEach { (item, quantity) ->
+                        append("${item.name} (x$quantity): RM%.2f\n".format(item.price * quantity))
+                    }
+                    append("\nSubtotal: RM%.2f\n".format(subtotal))
+                    if (discount > 0 && promoCode != null) {
+                        append("Discount ($promoCode): -RM%.2f\n".format(subtotal * discount))
+                    }
+                    append("Total: RM%.2f\n".format(total))
+                    append("Payment Method: $paymentMethod\n")
+                    if (paymentMethod == "Card") {
+                        append("Card ending in: ${cardNumber.takeLast(4)}\n")
+                    }
+                    append("Delivery Option: $deliveryOption\n")
+                    append("--------------------------")
+                }
+
+                // Update UI on the main thread
+                runOnUiThread {
+                    // Show confirmation and receipt
+                    paymentConfirmationLayout.visibility = View.VISIBLE
+                    receiptTextView.text = receipt
+
+                    // Hide payment form and related UI elements
+                    paymentFormLayout.visibility = View.GONE
+                    paymentMethodGroup.visibility = View.GONE
+                    findViewById<TextView>(R.id.payment_method_label).visibility = View.GONE
+                    payButton.visibility = View.GONE
+
+                    // Show payment confirmation
+                    showPaymentConfirmation(orderId, total)
+                }
+
+                // Clear cart only after everything is done
+                CartManager.clearCart()
             } catch (e: Exception) {
                 Toast.makeText(this@CheckoutActivity, "Error processing order: ${e.message}", Toast.LENGTH_LONG).show()
             }
@@ -329,9 +353,6 @@ class CheckoutActivity : AppCompatActivity() {
     }
 
     private fun showPaymentConfirmation(orderId: String, total: Double) {
-        paymentFormLayout.visibility = View.GONE
-        paymentConfirmationLayout.visibility = View.VISIBLE
-
         val rewardPoints = maxOf(1, (total * 0.1).toInt())
         val receiptText = buildString {
             append("Order ID: $orderId\n")
@@ -346,6 +367,57 @@ class CheckoutActivity : AppCompatActivity() {
             intent.putExtra("orderId", orderId)
             startActivity(intent)
             finish()
+        }
+    }
+
+    private fun saveAsFavoriteOrder(name: String,cartItems:List<Pair<Product, Int>>) {
+        lifecycleScope.launch {
+            try {
+                Log.d("CheckoutActivity", "Starting to save favorite order with name: $name")
+                val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+                val userEmail = sharedPreferences.getString("loggedInUserEmail", null)
+                
+                if (userEmail == null) {
+                    Log.e("CheckoutActivity", "No user email found in SharedPreferences")
+                    Toast.makeText(this@CheckoutActivity, "Please log in to save favorite orders", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                val user = repository.getUserByEmail(userEmail)
+                if (user == null) {
+                    Log.e("CheckoutActivity", "No user found for email: $userEmail")
+                    Toast.makeText(this@CheckoutActivity, "User not found", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+
+
+
+                if (cartItems.isEmpty()) {
+                    Log.e("CheckoutActivity", "Cart is empty, cannot save favorite order")
+                    Toast.makeText(this@CheckoutActivity, "Your cart is empty", Toast.LENGTH_SHORT).show()
+                    return@launch
+                }
+                
+                Log.d("CheckoutActivity", "Converting ${cartItems.size} cart items to JSON")
+                // Convert cart items to JSON using TypeToken for proper serialization
+                val type = object : TypeToken<List<Pair<Product, Int>>>() {}.type
+                val itemsJson = Gson().toJson(cartItems, type)
+                
+                // Create and save favorite order
+                val favoriteOrder = FavoriteOrder(
+                    userId = user.id,
+                    name = name,
+                    items = itemsJson
+                )
+                
+                Log.d("CheckoutActivity", "Inserting favorite order: $favoriteOrder")
+                repository.insertFavoriteOrder(favoriteOrder)
+                Log.d("CheckoutActivity", "Favorite order saved successfully")
+                Toast.makeText(this@CheckoutActivity, "Favorite order saved!", Toast.LENGTH_SHORT).show()
+            } catch (e: Exception) {
+                Log.e("CheckoutActivity", "Error saving favorite order", e)
+                Toast.makeText(this@CheckoutActivity, "Error saving favorite order: ${e.message}", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 

@@ -88,7 +88,7 @@ class RewardsFragment : Fragment() {
                 }
 
                 // Update points display
-                pointsBalanceText.text = "Points Balance: ${user.loyaltyPoints}"
+                pointsBalanceText.text = "Points Balance: ${user.loyaltyPoints} (RM ${String.format("%.2f", user.loyaltyPoints * 0.01)})"
                 
                 // Update redeem button state
                 if (user.loyaltyPoints > 0) {
@@ -181,7 +181,7 @@ class RewardsFragment : Fragment() {
                 val dialogView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_redeem_points, null)
                 val pointsInput = dialogView.findViewById<android.widget.EditText>(R.id.points_input)
                 val maxPointsText = dialogView.findViewById<TextView>(R.id.max_points_text)
-                maxPointsText.text = "Maximum points: ${user.loyaltyPoints}"
+                maxPointsText.text = "Maximum points: ${user.loyaltyPoints} (RM ${String.format("%.2f", user.loyaltyPoints * 0.01)})"
 
                 val dialog = AlertDialog.Builder(requireContext())
                     .setTitle("Redeem Points")
@@ -202,6 +202,7 @@ class RewardsFragment : Fragment() {
 
                         // Calculate discount (1 point = RM 0.01)
                         val discount = pointsToRedeem * 0.01
+                        Log.d("RewardsFragment", "Calculated discount: RM $discount")
 
                         // Store the redeemed discount in SharedPreferences
                         val sharedPrefs = requireActivity().getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
@@ -209,6 +210,7 @@ class RewardsFragment : Fragment() {
                             putFloat("redeemedDiscount", discount.toFloat())
                             apply()
                         }
+                        Log.d("RewardsFragment", "Stored discount in SharedPreferences: RM $discount")
 
                         // Create reward transaction
                         val rewardTransaction = RewardTransaction(
@@ -217,9 +219,11 @@ class RewardsFragment : Fragment() {
                             type = TransactionType.REDEEMED,
                             description = "Points redeemed for RM ${String.format("%.2f", discount)} discount"
                         )
+                        Log.d("RewardsFragment", "Created reward transaction: $rewardTransaction")
 
                         // Update user's loyalty points
                         val updatedUser = user.copy(loyaltyPoints = user.loyaltyPoints - pointsToRedeem)
+                        Log.d("RewardsFragment", "Updated user points: ${user.loyaltyPoints} -> ${updatedUser.loyaltyPoints}")
 
                         viewLifecycleOwner.lifecycleScope.launch {
                             try {
@@ -227,7 +231,7 @@ class RewardsFragment : Fragment() {
                                 repository.insertRewardTransaction(rewardTransaction)
                                 Log.d("RewardsFragment", "Updating user: $updatedUser")
                                 repository.updateUser(updatedUser)
-                                Toast.makeText(requireContext(), "Points redeemed successfully!", Toast.LENGTH_SHORT).show()
+                                Toast.makeText(requireContext(), "Points redeemed successfully! RM ${String.format("%.2f", discount)} discount will be applied to your next order.", Toast.LENGTH_LONG).show()
                                 loadUserData() // Refresh points display
                                 loadTransactions() // Refresh transaction list
                             } catch (e: Exception) {

@@ -66,4 +66,17 @@ interface CoffeeShopDao {
 
     @Query("SELECT * FROM reward_transactions WHERE userId = :userId AND type = :type ORDER BY timestamp DESC")
     fun getRewardTransactionsByType(userId: Long, type: TransactionType): Flow<List<RewardTransaction>>
+
+    // Favorite Order methods
+    @Query("SELECT * FROM favorite_orders WHERE userId = :userId ORDER BY timestamp DESC")
+    fun getFavoriteOrders(userId: Long): Flow<List<FavoriteOrder>>
+
+    @Insert
+    suspend fun insertFavoriteOrder(favoriteOrder: FavoriteOrder)
+
+    @Delete
+    suspend fun deleteFavoriteOrder(favoriteOrder: FavoriteOrder)
+
+    @Query("SELECT * FROM favorite_orders WHERE id = :id")
+    suspend fun getFavoriteOrder(id: Long): FavoriteOrder?
 }

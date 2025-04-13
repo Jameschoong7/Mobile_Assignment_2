@@ -12,7 +12,8 @@ import androidx.room.TypeConverters
         Product::class,
         Order::class,
         OrderItem::class,
-        RewardTransaction::class
+        RewardTransaction::class,
+        FavoriteOrder::class
     ],
     version = 1,
     exportSchema = false
@@ -33,7 +34,7 @@ abstract class CoffeeShopDatabase : RoomDatabase() {
                     context.applicationContext,
                     CoffeeShopDatabase::class.java,
                     "coffee_shop_database"
-                ).build()
+                ).fallbackToDestructiveMigration().build()
                 INSTANCE = instance
                 instance
             }

@@ -134,6 +134,24 @@
                 android:text="Save payment details for future orders"
                 android:textColor="#8B4513"
                 android:layout_marginBottom="16dp" />
+
+            <CheckBox
+                android:id="@+id/save_as_favorite_checkbox"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Save this order as favorite"
+                android:layout_marginTop="16dp"
+                app:layout_constraintTop_toBottomOf="@id/payment_form_layout"
+                app:layout_constraintStart_toStartOf="parent" />
+
+            <EditText
+                android:id="@+id/favorite_order_name"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="Enter favorite order name"
+                android:visibility="gone"
+                android:layout_marginTop="8dp"
+                app:layout_constraintTop_toBottomOf="@id/save_as_favorite_checkbox" />
         </LinearLayout>
 
         <!-- Pay Now Button (Always Visible) -->

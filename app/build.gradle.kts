@@ -50,7 +50,7 @@ dependencies {
     implementation(libs.androidx.navigation.ui.ktx)
     implementation(libs.androidx.room.common)
     implementation(libs.androidx.room.ktx)
-
+    implementation("com.google.code.gson:gson:2.11.0")
     kapt("androidx.room:room-compiler:2.7.0")
 
     testImplementation(libs.junit)

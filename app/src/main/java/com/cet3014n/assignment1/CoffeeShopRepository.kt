@@ -43,4 +43,10 @@ class CoffeeShopRepository(private val dao: CoffeeShopDao) {
     fun getRewardTransactionsByType(userId: Long, type: TransactionType): Flow<List<RewardTransaction>> {
         return dao.getRewardTransactionsByType(userId, type)
     }
+
+    // Favorite Order operations
+    suspend fun insertFavoriteOrder(favoriteOrder: FavoriteOrder) = dao.insertFavoriteOrder(favoriteOrder)
+    suspend fun deleteFavoriteOrder(favoriteOrder: FavoriteOrder) = dao.deleteFavoriteOrder(favoriteOrder)
+    fun getFavoriteOrders(userId: Long): Flow<List<FavoriteOrder>> = dao.getFavoriteOrders(userId)
+    suspend fun getFavoriteOrder(id: Long): FavoriteOrder? = dao.getFavoriteOrder(id)
 }

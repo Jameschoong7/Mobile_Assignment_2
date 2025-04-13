@@ -1,5 +1,7 @@
 package com.cet3014n.assignment1
 
+import android.util.Log
+
 object CartManager {
     private val cartItems = mutableListOf<Pair<Product, Int>>() // Item and quantity
 
@@ -29,6 +31,7 @@ object CartManager {
     }
 
     fun clearCart() {
+        Log.d("CartManager", "Clearing cart")
         cartItems.clear()
     }
 }

@@ -72,11 +72,29 @@ interface CoffeeShopDao {
     fun getFavoriteOrders(userId: Long): Flow<List<FavoriteOrder>>
 
     @Insert
-    suspend fun insertFavoriteOrder(favoriteOrder: FavoriteOrder)
+    suspend fun insertFavoriteOrder(favoriteOrder: FavoriteOrder): Long
 
     @Delete
     suspend fun deleteFavoriteOrder(favoriteOrder: FavoriteOrder)
 
     @Query("SELECT * FROM favorite_orders WHERE id = :id")
     suspend fun getFavoriteOrder(id: Long): FavoriteOrder?
+
+    // Favorite Order Item methods
+    @Insert
+    suspend fun insertFavoriteOrderItem(item: FavoriteOrderItem)
+
+    @Query("SELECT * FROM favorite_order_items WHERE favoriteOrderId = :favoriteOrderId")
+    suspend fun getFavoriteOrderItems(favoriteOrderId: Long): List<FavoriteOrderItem>
+
+    @Query("""
+        SELECT p.*, foi.quantity 
+        FROM products p
+        INNER JOIN favorite_order_items foi ON p.id = foi.productId
+        WHERE foi.favoriteOrderId = :favoriteOrderId
+    """)
+    suspend fun getFavoriteOrderItemsWithProducts(favoriteOrderId: Long): List<FavoriteOrderItemWithProduct>
+
+    @Delete
+    suspend fun deleteFavoriteOrderItem(item: FavoriteOrderItem)
 }

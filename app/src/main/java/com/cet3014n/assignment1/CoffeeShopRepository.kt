@@ -45,8 +45,32 @@ class CoffeeShopRepository(private val dao: CoffeeShopDao) {
     }
 
     // Favorite Order operations
-    suspend fun insertFavoriteOrder(favoriteOrder: FavoriteOrder) = dao.insertFavoriteOrder(favoriteOrder)
-    suspend fun deleteFavoriteOrder(favoriteOrder: FavoriteOrder) = dao.deleteFavoriteOrder(favoriteOrder)
+    suspend fun insertFavoriteOrder(favoriteOrder: FavoriteOrder, items: List<Pair<Product, Int>>): Long {
+        val favoriteOrderId = dao.insertFavoriteOrder(favoriteOrder)
+        for ((product, quantity) in items) {
+            val favoriteOrderItem = FavoriteOrderItem(
+                favoriteOrderId = favoriteOrderId,
+                productId = product.id,
+                quantity = quantity
+            )
+            dao.insertFavoriteOrderItem(favoriteOrderItem)
+        }
+        return favoriteOrderId
+    }
+
+    suspend fun deleteFavoriteOrder(favoriteOrder: FavoriteOrder) {
+        dao.deleteFavoriteOrder(favoriteOrder)
+    }
+
     fun getFavoriteOrders(userId: Long): Flow<List<FavoriteOrder>> = dao.getFavoriteOrders(userId)
-    suspend fun getFavoriteOrder(id: Long): FavoriteOrder? = dao.getFavoriteOrder(id)
+
+    suspend fun getFavoriteOrderWithItems(id: Long): Pair<FavoriteOrder?, List<Pair<Product, Int>>> {
+        val favoriteOrder = dao.getFavoriteOrder(id)
+        val items = if (favoriteOrder != null) {
+            dao.getFavoriteOrderItemsWithProducts(id).map { it.toProduct() to it.quantity }
+        } else {
+            emptyList()
+        }
+        return Pair(favoriteOrder, items)
+    }
 }

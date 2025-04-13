@@ -304,7 +304,7 @@ class CheckoutActivity : AppCompatActivity() {
                         return@launch
                     }
                     
-                    saveAsFavoriteOrder(name,cartItems)
+                    saveAsFavoriteOrder(name, cartItems)
                 }
 
                 // Generate receipt after saving favorite order
@@ -370,7 +370,7 @@ class CheckoutActivity : AppCompatActivity() {
         }
     }
 
-    private fun saveAsFavoriteOrder(name: String,cartItems:List<Pair<Product, Int>>) {
+    private fun saveAsFavoriteOrder(name: String, cartItems: List<Pair<Product, Int>>) {
         lifecycleScope.launch {
             try {
                 Log.d("CheckoutActivity", "Starting to save favorite order with name: $name")
@@ -390,28 +390,20 @@ class CheckoutActivity : AppCompatActivity() {
                     return@launch
                 }
 
-
-
                 if (cartItems.isEmpty()) {
                     Log.e("CheckoutActivity", "Cart is empty, cannot save favorite order")
                     Toast.makeText(this@CheckoutActivity, "Your cart is empty", Toast.LENGTH_SHORT).show()
                     return@launch
                 }
                 
-                Log.d("CheckoutActivity", "Converting ${cartItems.size} cart items to JSON")
-                // Convert cart items to JSON using TypeToken for proper serialization
-                val type = object : TypeToken<List<Pair<Product, Int>>>() {}.type
-                val itemsJson = Gson().toJson(cartItems, type)
-                
-                // Create and save favorite order
+                // Create and save favorite order with items
                 val favoriteOrder = FavoriteOrder(
                     userId = user.id,
-                    name = name,
-                    items = itemsJson
+                    name = name
                 )
                 
                 Log.d("CheckoutActivity", "Inserting favorite order: $favoriteOrder")
-                repository.insertFavoriteOrder(favoriteOrder)
+                repository.insertFavoriteOrder(favoriteOrder, cartItems)
                 Log.d("CheckoutActivity", "Favorite order saved successfully")
                 Toast.makeText(this@CheckoutActivity, "Favorite order saved!", Toast.LENGTH_SHORT).show()
             } catch (e: Exception) {

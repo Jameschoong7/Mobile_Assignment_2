@@ -26,6 +26,7 @@ class LoginActivity : AppCompatActivity() {
         val emailInput = findViewById<EditText>(R.id.email)
         val passwordInput = findViewById<EditText>(R.id.password)
         val loginButton = findViewById<Button>(R.id.login_button)
+        val adminLoginButton = findViewById<Button>(R.id.admin_login_button)
         val registerButton = findViewById<Button>(R.id.register_button)
         val forgotPasswordText = findViewById<TextView>(R.id.forgot_password)
 
@@ -58,6 +59,30 @@ class LoginActivity : AppCompatActivity() {
                         Toast.makeText(this@LoginActivity, "Invalid credentials", Toast.LENGTH_SHORT).show()
                     }
                 }
+            }
+        }
+
+        adminLoginButton.setOnClickListener {
+            val email = emailInput.text.toString().trim()
+            val password = passwordInput.text.toString().trim()
+
+            if (email.isEmpty() || password.isEmpty()) {
+                Toast.makeText(this, "Please enter email and password", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
+            // Check for admin credentials
+            if (email == "admin@coffeeshop.com" && password == "admin123") {
+                // Store admin session
+                val sharedPreferences = getSharedPreferences("AdminPrefs", Context.MODE_PRIVATE)
+                sharedPreferences.edit().putBoolean("isAdminLoggedIn", true).apply()
+                
+                Toast.makeText(this, "Admin login successful", Toast.LENGTH_SHORT).show()
+                val intent = Intent(this, AdminActivity::class.java)
+                startActivity(intent)
+                finish()
+            } else {
+                Toast.makeText(this, "Invalid admin credentials", Toast.LENGTH_SHORT).show()
             }
         }
 

@@ -10,6 +10,7 @@ class CoffeeShopRepository(private val dao: CoffeeShopDao) {
     suspend fun deleteUser(user: User) = dao.deleteUser(user)
     suspend fun getUser(userId: Long): User? = dao.getUser(userId)
     suspend fun getUserByEmail(email: String): User? = dao.getUserByEmail(email)
+    suspend fun getAllUsers(): List<User> = dao.getAllUsers()
 
     // Product operations
     suspend fun insertProduct(product: Product) = dao.insertProduct(product)
@@ -22,6 +23,7 @@ class CoffeeShopRepository(private val dao: CoffeeShopDao) {
     suspend fun updateOrder(order: Order) = dao.updateOrder(order)
     suspend fun deleteOrder(order: Order) = dao.deleteOrder(order)
     suspend fun getOrdersByUser(userId: Long): List<Order> = dao.getOrdersByUser(userId)
+    suspend fun getAllOrders(): List<Order> = dao.getAllOrders()
 
     // OrderItem operations
     suspend fun insertOrderItem(orderItem: OrderItem) = dao.insertOrderItem(orderItem)

@@ -21,6 +21,9 @@ interface CoffeeShopDao {
     @Query("SELECT * FROM users WHERE email = :email")
     suspend fun getUserByEmail(email: String): User?
 
+    @Query("SELECT * FROM users")
+    suspend fun getAllUsers(): List<User>
+
     // Product operations
     @Insert
     suspend fun insertProduct(product: Product)
@@ -46,6 +49,9 @@ interface CoffeeShopDao {
 
     @Query("SELECT * FROM orders WHERE userId = :userId ORDER BY timestamp DESC")
     suspend fun getOrdersByUser(userId: Long): List<Order>
+
+    @Query("SELECT * FROM orders ORDER BY timestamp DESC")
+    suspend fun getAllOrders(): List<Order>
 
     // OrderItem operations
     @Insert

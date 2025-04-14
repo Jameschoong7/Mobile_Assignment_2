@@ -27,6 +27,12 @@
             android:exported="false"
             android:label="Coffee Shop" />
 
+        <!-- Admin Activity -->
+        <activity
+            android:name=".AdminActivity"
+            android:exported="false"
+            android:label="Admin Panel" />
+
         <!-- Authentication Activities -->
         <activity
             android:name=".LoginActivity"

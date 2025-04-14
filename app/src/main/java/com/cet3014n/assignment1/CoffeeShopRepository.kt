@@ -73,4 +73,8 @@ class CoffeeShopRepository(private val dao: CoffeeShopDao) {
         }
         return Pair(favoriteOrder, items)
     }
+
+    // Support Feedback operations
+    suspend fun insertSupportFeedback(feedback: SupportFeedback) = dao.insertSupportFeedback(feedback)
+    suspend fun getSupportFeedback(userId: Long): List<SupportFeedback> = dao.getSupportFeedback(userId)
 }

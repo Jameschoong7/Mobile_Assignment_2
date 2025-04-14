@@ -97,4 +97,11 @@ interface CoffeeShopDao {
 
     @Delete
     suspend fun deleteFavoriteOrderItem(item: FavoriteOrderItem)
+
+    // Support Feedback methods
+    @Insert
+    suspend fun insertSupportFeedback(feedback: SupportFeedback)
+
+    @Query("SELECT * FROM support_feedback WHERE userId = :userId ORDER BY timestamp DESC")
+    suspend fun getSupportFeedback(userId: Long): List<SupportFeedback>
 }

@@ -68,6 +68,10 @@ class MainActivity : AppCompatActivity() {
                                 loadFragment(FavoriteOrdersFragment())
                                 true
                             }
+                            R.id.action_customer_support -> {
+                                loadFragment(CustomerSupportFragment())
+                                true
+                            }
                             else -> false
                         }
                     }

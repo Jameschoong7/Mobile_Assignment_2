@@ -14,9 +14,10 @@ import androidx.room.TypeConverters
         OrderItem::class,
         RewardTransaction::class,
         FavoriteOrder::class,
-        FavoriteOrderItem::class
+        FavoriteOrderItem::class,
+        SupportFeedback::class
     ],
-    version = 2,
+    version = 3,
     exportSchema = false
 )
 @TypeConverters(Converters::class)  // Register the TypeConverters class

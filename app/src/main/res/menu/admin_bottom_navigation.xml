@@ -1,17 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
     <item
-        android:id="@+id/nav_menu_management"
+        android:id="@+id/navigation_menu_management"
         android:icon="@android:drawable/ic_menu_edit"
-        android:title="Menu Management" />
+        android:title="Menu" />
 
     <item
-        android:id="@+id/nav_order_management"
+        android:id="@+id/navigation_order_management"
         android:icon="@android:drawable/ic_menu_sort_by_size"
         android:title="Order Management" />
 
     <item
-        android:id="@+id/nav_customer_support"
+        android:id="@+id/navigation_customer_support"
         android:icon="@android:drawable/ic_menu_help"
         android:title="Customer Support" />
+
+    <item
+        android:id="@+id/navigation_sales_report"
+        android:icon="@android:drawable/ic_dialog_map"
+        android:title="Sales" />
 </menu> 

@@ -71,11 +71,11 @@ class CafeMenuFragment : Fragment() {
         // Set up button listeners
         setCategoryButtonListeners()
         setupCartIcon()
+        setupDietaryFilter()
 
         trackOrderButton.setOnClickListener {
             val intent = Intent(requireActivity(), OrderTrackingActivity::class.java)
             startActivity(intent)
-
         }
         // Load menu items
         loadMenuFromDatabase()
@@ -134,6 +134,18 @@ class CafeMenuFragment : Fragment() {
         }
     }
 
+    private fun setupDietaryFilter() {
+        dietaryFilterGroup.setOnCheckedChangeListener { group, checkedId ->
+            currentDietaryFilter = when (checkedId) {
+                R.id.dietary_all -> "All Dietary"
+                R.id.dietary_gluten_free -> "Gluten-Free"
+                R.id.dietary_vegetarian -> "Vegetarian"
+                else -> "All Dietary"
+            }
+            applyFilters()
+        }
+    }
+
     private fun loadMenuFromDatabase() {
         lifecycleScope.launch {
             val allProducts = repository.getAllProducts()
@@ -149,7 +161,9 @@ class CafeMenuFragment : Fragment() {
 
         val filteredItems = when (currentDietaryFilter) {
             "All Dietary" -> categoryFilteredItems
-            else -> categoryFilteredItems.filter { currentDietaryFilter in it.dietary }
+            else -> categoryFilteredItems.filter { product -> 
+                product.dietary.any { it == currentDietaryFilter }
+            }
         }
 
         if (filteredItems.isEmpty()) {

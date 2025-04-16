@@ -79,6 +79,11 @@ class CartActivity : AppCompatActivity() {
 
         // Setup proceed button
         proceedButton.setOnClickListener {
+            if (CartManager.getItems().isEmpty()) {
+                Toast.makeText(this, "Your cart is empty. Please add items before proceeding.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val deliveryAddress = deliveryAddressEditText.text.toString()
             val deliveryOption = if (deliveryRadioGroup.checkedRadioButtonId == R.id.delivery_radio) {
                 if (deliveryAddress.isEmpty()) {
@@ -101,8 +106,9 @@ class CartActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-        // Update initial total amount
+        // Update initial total amount and proceed button state
         updateTotalAmount()
+        updateProceedButtonState()
     }
 
     override fun onResume() {
@@ -110,6 +116,12 @@ class CartActivity : AppCompatActivity() {
         // Refresh the cart items and update UI
         cartAdapter.updateItems(CartManager.getItems())
         updateTotalAmount()
+        updateProceedButtonState()
+    }
+
+    private fun updateProceedButtonState() {
+        proceedButton.isEnabled = CartManager.getItems().isNotEmpty()
+        proceedButton.alpha = if (proceedButton.isEnabled) 1.0f else 0.5f
     }
 
     fun updateTotalAmount() {

@@ -42,7 +42,7 @@ class CustomizeOrderActivity : AppCompatActivity() {
 
         itemImage.setImageResource(item.imageResId)
         itemName.text = item.name
-        itemPrice.text = "RM${item.price}"
+        itemPrice.text = "RM${String.format("%.2f", item.price)}"
         itemDescription.text = item.description
 
         val isCustomizable = item.category == "Coffee" || item.category == "Tea"
@@ -80,12 +80,48 @@ class CustomizeOrderActivity : AppCompatActivity() {
             quantityText.text = quantity.toString()
         }
 
+        // Setup size radio group listener
+        sizeRadioGroup.setOnCheckedChangeListener { group, checkedId ->
+            val basePrice = item.price
+            when (checkedId) {
+                R.id.size_small -> {
+                    itemPrice.text = "RM${String.format("%.2f", basePrice)}"
+                    volumeLabel.text = "Volume: 160 ml"
+                }
+                R.id.size_medium -> {
+                    itemPrice.text = "RM${String.format("%.2f", basePrice * 1.2)}"
+                    volumeLabel.text = "Volume: 240 ml"
+                }
+                R.id.size_large -> {
+                    itemPrice.text = "RM${String.format("%.2f", basePrice * 1.4)}"
+                    volumeLabel.text = "Volume: 320 ml"
+                }
+            }
+        }
+
+        // Set initial price and volume
+        itemPrice.text = "RM${String.format("%.2f", item.price)}"
+        volumeLabel.text = "Volume: 160 ml"
+
         addToCartButton.setOnClickListener {
             val customizations = mutableListOf<String>()
-            if (sugarCheckbox.isChecked) customizations.add("Sugar")
-            if (sizeRadioGroup.checkedRadioButtonId == R.id.size_large) customizations.add("Large Size")
+            if (sugarCheckbox.isChecked) customizations.add("No Sugar")
+            
+            // Get the selected size and update price accordingly
+            val sizeMultiplier = when (sizeRadioGroup.checkedRadioButtonId) {
+                R.id.size_medium -> 1.2
+                R.id.size_large -> 1.4
+                else -> 1.0
+            }
+            
+            val sizeText = when (sizeRadioGroup.checkedRadioButtonId) {
+                R.id.size_medium -> "Medium Size"
+                R.id.size_large -> "Large Size"
+                else -> "Small Size"
+            }
+            customizations.add(sizeText)
 
-            val customizedItem = item.copy()
+            val customizedItem = item.copy(price = item.price * sizeMultiplier)
             CartManager.addItem(customizedItem, quantity)
 
             Toast.makeText(this, "${item.name} added to cart", Toast.LENGTH_SHORT).show()

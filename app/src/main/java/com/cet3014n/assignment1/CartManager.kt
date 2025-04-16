@@ -10,9 +10,11 @@ object CartManager {
     private var appliedPromoCode: String? = null
 
     fun addItem(item: Product, quantity: Int = 1) {
-        // Find if the product already exists in the cart based on name and description (customized description)
+        // Find if the product already exists in the cart based on name, description, and price
         val existing = cartItems.find {
-            it.first.name == item.name && it.first.description == item.description
+            it.first.name == item.name && 
+            it.first.description == item.description && 
+            it.first.price == item.price
         }
         if (existing != null) {
             cartItems[cartItems.indexOf(existing)] = existing.copy(second = existing.second + quantity)

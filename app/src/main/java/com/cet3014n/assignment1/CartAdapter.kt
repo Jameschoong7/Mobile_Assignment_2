@@ -8,16 +8,15 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 
 class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
+    private var items: List<Pair<Product, Int>> = emptyList()
 
-    private var items: List<Pair<Product, Int>> = CartManager.getItems()
-
-    class ViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val name: TextView = itemView.findViewById(R.id.cart_item_name)
-        val price: TextView = itemView.findViewById(R.id.cart_item_price)
-        val customizations: TextView = itemView.findViewById(R.id.cart_item_customizations)
-        val quantity: TextView = itemView.findViewById(R.id.cart_item_quantity)
-        val decreaseButton: Button = itemView.findViewById(R.id.decrease_quantity)
-        val increaseButton: Button = itemView.findViewById(R.id.increase_quantity)
+    class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+        val nameTextView: TextView = view.findViewById(R.id.cart_item_name)
+        val priceTextView: TextView = view.findViewById(R.id.cart_item_price)
+        val customizationsTextView: TextView = view.findViewById(R.id.cart_item_customizations)
+        val quantityTextView: TextView = view.findViewById(R.id.cart_item_quantity)
+        val increaseButton: Button = view.findViewById(R.id.increase_quantity)
+        val decreaseButton: Button = view.findViewById(R.id.decrease_quantity)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -28,32 +27,27 @@ class CartAdapter : RecyclerView.Adapter<CartAdapter.ViewHolder>() {
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val (item, quantity) = items[position]
-        holder.name.text = item.name
-        holder.price.text = "RM ${String.format("%.2f", item.price)}"
-        holder.customizations.text = item.description
-        holder.quantity.text = quantity.toString()
-
-        holder.decreaseButton.setOnClickListener {
-            val newQuantity = quantity - 1
-            CartManager.updateQuantity(item, newQuantity)
-            items = CartManager.getItems()
-            notifyDataSetChanged()
-            (holder.itemView.context as? CartActivity)?.updateTotalAmount()
-        }
+        
+        holder.nameTextView.text = item.name
+        holder.priceTextView.text = "RM ${String.format("%.2f", item.price * quantity)}"
+        holder.customizationsTextView.text = item.description
+        holder.quantityTextView.text = quantity.toString()
 
         holder.increaseButton.setOnClickListener {
-            val newQuantity = quantity + 1
-            CartManager.updateQuantity(item, newQuantity)
-            items = CartManager.getItems()
-            notifyDataSetChanged()
-            (holder.itemView.context as? CartActivity)?.updateTotalAmount()
+            CartManager.updateQuantity(item, quantity + 1)
+            updateItems(CartManager.getItems())
+        }
+
+        holder.decreaseButton.setOnClickListener {
+            CartManager.updateQuantity(item, quantity - 1)
+            updateItems(CartManager.getItems())
         }
     }
 
-    override fun getItemCount() = items.size
+    override fun getItemCount(): Int = items.size
 
-    fun refreshItems() {
-        items = CartManager.getItems()
+    fun updateItems(newItems: List<Pair<Product, Int>>) {
+        items = newItems
         notifyDataSetChanged()
     }
 }

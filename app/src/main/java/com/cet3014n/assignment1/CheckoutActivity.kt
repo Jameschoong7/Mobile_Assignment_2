@@ -94,9 +94,9 @@ class CheckoutActivity : AppCompatActivity() {
         
         // Apply redeemed discount if available
         if (redeemedDiscount > 0) {
-            total -= redeemedDiscount
-            // Clear the redeemed discount after applying it
-            sharedPreferences.edit().remove("redeemedDiscount").apply()
+            // Apply the redeemed discount to the total
+            total = subtotal * (1 - discount) - redeemedDiscount
+
         }
 
         // Display the total with discount (if applied)
@@ -218,6 +218,10 @@ class CheckoutActivity : AppCompatActivity() {
     private fun simulatePaymentProcessing(cardNumber: String, deliveryOption: String, paymentMethod: String) {
         // Simulate payment success
         Toast.makeText(this, "Payment successful!", Toast.LENGTH_SHORT).show()
+
+        // Clear the redeemed discount after successful payment
+        val sharedPreferences = getSharedPreferences("UserPrefs", Context.MODE_PRIVATE)
+        sharedPreferences.edit().remove("redeemedDiscount").apply()
 
         // Create an order for tracking
         val orderId = "ORDER_${System.currentTimeMillis()}"

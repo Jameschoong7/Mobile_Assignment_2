@@ -25,10 +25,6 @@ class CartActivity : AppCompatActivity() {
         "SAVE5" to 0.05
     )
 
-    private var appliedDiscount: Double = 0.0
-    private var appliedPromoCode: String? = null
-    private var deliveryAddress: String? = null
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_cart)
@@ -59,11 +55,9 @@ class CartActivity : AppCompatActivity() {
             when (checkedId) {
                 R.id.pickup_radio -> {
                     addressInputLayout.visibility = View.GONE
-                    deliveryAddress = null
                 }
                 R.id.delivery_radio -> {
                     addressInputLayout.visibility = View.VISIBLE
-
                 }
             }
         }
@@ -74,8 +68,7 @@ class CartActivity : AppCompatActivity() {
             if (promoCode.isNotEmpty()) {
                 val discount = promoCodes[promoCode]
                 if (discount != null) {
-                    appliedDiscount = discount
-                    appliedPromoCode = promoCode
+                    CartManager.applyDiscount(discount, promoCode)
                     Toast.makeText(this, "Promo code applied!", Toast.LENGTH_SHORT).show()
                     updateTotalAmount()
                 } else {
@@ -86,9 +79,9 @@ class CartActivity : AppCompatActivity() {
 
         // Setup proceed button
         proceedButton.setOnClickListener {
-            deliveryAddress = deliveryAddressEditText.text.toString()
+            val deliveryAddress = deliveryAddressEditText.text.toString()
             val deliveryOption = if (deliveryRadioGroup.checkedRadioButtonId == R.id.delivery_radio) {
-                if (deliveryAddress.isNullOrEmpty()) {
+                if (deliveryAddress.isEmpty()) {
                     Toast.makeText(this, "Please enter delivery address", Toast.LENGTH_SHORT).show()
                     return@setOnClickListener
                 }
@@ -100,10 +93,10 @@ class CartActivity : AppCompatActivity() {
             val intent = Intent(this, CheckoutActivity::class.java).apply {
                 putExtra("deliveryOption", deliveryOption)
                 putExtra("deliveryAddress", deliveryAddress)
-                putExtra("subtotal", calculateSubtotal())
-                putExtra("total", calculateTotal())
-                putExtra("promoCode", appliedPromoCode)
-                putExtra("discount", appliedDiscount)
+                putExtra("subtotal", CartManager.calculateSubtotal())
+                putExtra("total", CartManager.calculateTotal())
+                putExtra("promoCode", CartManager.getAppliedPromoCode())
+                putExtra("discount", CartManager.getAppliedDiscount())
             }
             startActivity(intent)
         }
@@ -112,18 +105,26 @@ class CartActivity : AppCompatActivity() {
         updateTotalAmount()
     }
 
-    private fun calculateSubtotal(): Double {
-        return CartManager.getItems().sumOf { (item, quantity) -> item.price * quantity }
+    override fun onResume() {
+        super.onResume()
+        // Refresh the cart items and update UI
+        cartAdapter.updateItems(CartManager.getItems())
+        updateTotalAmount()
     }
 
-    private fun calculateTotal(): Double {
-        val subtotal = calculateSubtotal()
-        return subtotal * (1 - appliedDiscount)
-    }
+    fun updateTotalAmount() {
+        val subtotal = CartManager.calculateSubtotal()
+        val total = CartManager.calculateTotal()
+        val discount = CartManager.getAppliedDiscount()
+        val promoCode = CartManager.getAppliedPromoCode()
 
-     fun updateTotalAmount() {
-        val subtotal = calculateSubtotal()
-        val total = calculateTotal()
-        totalAmountTextView.text = "Total: RM ${String.format("%.2f", total)}"
+        val text = buildString {
+            append("Subtotal: RM${String.format("%.2f", subtotal)}")
+            if (discount > 0 && promoCode != null) {
+                append("\nDiscount ($promoCode): -RM${String.format("%.2f", subtotal * discount)}")
+            }
+            append("\nTotal: RM${String.format("%.2f", total)}")
+        }
+        totalAmountTextView.text = text
     }
 }

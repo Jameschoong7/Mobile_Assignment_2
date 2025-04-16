@@ -30,6 +30,7 @@ class CafeMenuFragment : Fragment() {
     private lateinit var categorySelectionLayout: LinearLayout
     private lateinit var menuBrowsingLayout: LinearLayout
     private lateinit var categoryLabel: TextView
+    private lateinit var trackOrderButton:Button
     private lateinit var dietaryFilterGroup: RadioGroup
     private lateinit var cartIcon: ImageView
     private var currentCategoryFilter: String? = null
@@ -59,6 +60,7 @@ class CafeMenuFragment : Fragment() {
         categoryLabel = view.findViewById(R.id.category_label)
         dietaryFilterGroup = view.findViewById(R.id.dietary_filter_group)
         cartIcon = view.findViewById(R.id.cart_icon)
+        trackOrderButton = view.findViewById(R.id.track_orders_button)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         Log.d(TAG, "onViewCreated: Views initialized")
@@ -70,6 +72,11 @@ class CafeMenuFragment : Fragment() {
         setCategoryButtonListeners()
         setupCartIcon()
 
+        trackOrderButton.setOnClickListener {
+            val intent = Intent(requireActivity(), OrderTrackingActivity::class.java)
+            startActivity(intent)
+
+        }
         // Load menu items
         loadMenuFromDatabase()
     }

@@ -68,7 +68,34 @@
             android:alignmentMode="alignMargins"
             android:columnCount="2"
             android:columnOrderPreserved="false"
-            android:rowCount="2">
+            android:rowCount="3">
+
+            <!-- All Items Category Card -->
+            <LinearLayout
+                android:id="@+id/category_all_button"
+                android:layout_width="150dp"
+                android:layout_height="wrap_content"
+                android:layout_margin="8dp"
+                android:background="@drawable/card_background"
+                android:gravity="center"
+                android:orientation="vertical"
+                android:padding="8dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="100dp"
+                    android:layout_height="100dp"
+                    android:contentDescription="All Items"
+                    android:src="@drawable/coffee_placeholder" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="All Items"
+                    android:textColor="#8B4513"
+                    android:textSize="18sp" />
+            </LinearLayout>
 
             <!-- Coffee Category Card -->
             <LinearLayout
@@ -198,6 +225,17 @@
                 android:textStyle="bold" />
         </LinearLayout>
 
+        <!-- Search Bar -->
+        <EditText
+            android:id="@+id/search_edit_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Search items..."
+            android:padding="12dp"
+            android:background="@drawable/search_background"
+            android:textColor="#8B4513"
+            android:textColorHint="#8B4513"
+            android:layout_marginBottom="8dp"/>
 
         <!-- Dietary Filter -->
         <RadioGroup

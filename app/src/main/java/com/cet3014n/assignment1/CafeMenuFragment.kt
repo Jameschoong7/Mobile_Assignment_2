@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Button
+import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.RadioGroup
@@ -33,8 +34,10 @@ class CafeMenuFragment : Fragment() {
     private lateinit var trackOrderButton:Button
     private lateinit var dietaryFilterGroup: RadioGroup
     private lateinit var cartIcon: ImageView
+    private lateinit var searchEditText: EditText
     private var currentCategoryFilter: String? = null
     private var currentDietaryFilter: String = "All Dietary"
+    private var currentSearchQuery: String = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,6 +64,7 @@ class CafeMenuFragment : Fragment() {
         dietaryFilterGroup = view.findViewById(R.id.dietary_filter_group)
         cartIcon = view.findViewById(R.id.cart_icon)
         trackOrderButton = view.findViewById(R.id.track_orders_button)
+        searchEditText = view.findViewById(R.id.search_edit_text)
         recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
         Log.d(TAG, "onViewCreated: Views initialized")
@@ -72,6 +76,7 @@ class CafeMenuFragment : Fragment() {
         setCategoryButtonListeners()
         setupCartIcon()
         setupDietaryFilter()
+        setupSearch()
 
         trackOrderButton.setOnClickListener {
             val intent = Intent(requireActivity(), OrderTrackingActivity::class.java)
@@ -84,12 +89,22 @@ class CafeMenuFragment : Fragment() {
     private fun setCategoryButtonListeners() {
         Log.d(TAG, "setCategoryButtonListeners: Setting up listeners")
         
+        val allItemsButton = view?.findViewById<LinearLayout>(R.id.category_all_button)
         val coffeeButton = view?.findViewById<LinearLayout>(R.id.category_coffee_button)
         val teaButton = view?.findViewById<LinearLayout>(R.id.category_tea_button)
         val pastriesButton = view?.findViewById<LinearLayout>(R.id.category_pastries_button)
         val backButton = view?.findViewById<Button>(R.id.back_to_categories_button)
 
-        Log.d(TAG, "setCategoryButtonListeners: Buttons found - Coffee: $coffeeButton, Tea: $teaButton, Pastries: $pastriesButton, Back: $backButton")
+        Log.d(TAG, "setCategoryButtonListeners: Buttons found - All Items: $allItemsButton, Coffee: $coffeeButton, Tea: $teaButton, Pastries: $pastriesButton, Back: $backButton")
+
+        allItemsButton?.setOnClickListener {
+            Log.d(TAG, "All Items button clicked")
+            currentCategoryFilter = null
+            categoryLabel.text = "Category: All Items"
+            categorySelectionLayout.visibility = View.GONE
+            menuBrowsingLayout.visibility = View.VISIBLE
+            applyFilters()
+        }
 
         coffeeButton?.setOnClickListener {
             Log.d(TAG, "Coffee button clicked")
@@ -146,6 +161,17 @@ class CafeMenuFragment : Fragment() {
         }
     }
 
+    private fun setupSearch() {
+        searchEditText.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                currentSearchQuery = s.toString().trim()
+                applyFilters()
+            }
+        })
+    }
+
     private fun loadMenuFromDatabase() {
         lifecycleScope.launch {
             val allProducts = repository.getAllProducts()
@@ -155,25 +181,36 @@ class CafeMenuFragment : Fragment() {
     }
 
     private fun applyFilters() {
-        if (currentCategoryFilter == null) return
+        val categoryFilteredItems = if (currentCategoryFilter == null) {
+            allMenuItems
+        } else {
+            allMenuItems.filter { it.category == currentCategoryFilter }
+        }
 
-        val categoryFilteredItems = allMenuItems.filter { it.category == currentCategoryFilter }
-
-        val filteredItems = when (currentDietaryFilter) {
+        val dietaryFilteredItems = when (currentDietaryFilter) {
             "All Dietary" -> categoryFilteredItems
             else -> categoryFilteredItems.filter { product -> 
                 product.dietary.any { it == currentDietaryFilter }
             }
         }
 
-        if (filteredItems.isEmpty()) {
+        val searchFilteredItems = if (currentSearchQuery.isNotEmpty()) {
+            dietaryFilteredItems.filter { product ->
+                product.name.contains(currentSearchQuery, ignoreCase = true) ||
+                product.description.contains(currentSearchQuery, ignoreCase = true)
+            }
+        } else {
+            dietaryFilteredItems
+        }
+
+        if (searchFilteredItems.isEmpty()) {
             recyclerView.visibility = View.GONE
             emptyMenuMessage.visibility = View.VISIBLE
-            emptyMenuMessage.text = "No items available."
+            emptyMenuMessage.text = "No items match your search."
         } else {
             recyclerView.visibility = View.VISIBLE
             emptyMenuMessage.visibility = View.GONE
-            menuAdapter = MenuAdapter(filteredItems)
+            menuAdapter = MenuAdapter(searchFilteredItems)
             recyclerView.adapter = menuAdapter
         }
     }
